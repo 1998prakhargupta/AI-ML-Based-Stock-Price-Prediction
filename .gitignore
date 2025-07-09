@@ -1,0 +1,34 @@
+# Add local config files to gitignore
+config.local.json
+.env
+*.env
+
+# API credentials and sensitive data
+credentials.json
+secrets.json
+
+# Data files
+*.csv
+*.parquet
+*.pkl
+
+# Model files
+*.h5
+*.joblib
+*.pickle
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

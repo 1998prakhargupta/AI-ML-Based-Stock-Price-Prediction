@@ -1,0 +1,45 @@
+{
+  "_comment": "Configuration file for stock prediction project. Environment variables take precedence over these values.",
+  "_security_note": "DO NOT COMMIT REAL CREDENTIALS TO VERSION CONTROL. Use environment variables instead.",
+  
+  "BREEZE_API_KEY": "YOUR_BREEZE_API_KEY_HERE",
+  "BREEZE_API_SECRET": "YOUR_BREEZE_API_SECRET_HERE", 
+  "BREEZE_SESSION_TOKEN": "YOUR_BREEZE_SESSION_TOKEN_HERE",
+  
+  "GOOGLE_DRIVE_PATH": "/content/drive/MyDrive/",
+  "DATA_SAVE_PATH": "/content/drive/MyDrive/BreezeData/",
+  "MODEL_SAVE_PATH": "/content/drive/MyDrive/Models/",
+  
+  "STOCK_NAME": "TCS",
+  "INTERVAL": "5minute",
+  "START_DATE": "2025-02-01",
+  "END_DATE": "2025-04-28",
+  
+  "INDEX_SYMBOLS": {
+    "NIFTY50": "^NSEI",
+    "NIFTYNEXT50": "^NSMIDCP", 
+    "NIFTY100": "^CNX100",
+    "NIFTY500": "^CRSLDX",
+    "NIFTYMIDCAP50": "^NSEMDCP50",
+    "NIFTYMIDCAP100": "NIFTY_MIDCAP_100.NS",
+    "BANKNIFTY": "^NSEBANK",
+    "NIFTYIT": "^CNXIT",
+    "NIFTYPSE": "^CNXPSE",
+    "NIFTYFMCG": "^CNXFMCG",
+    "NIFTYENERGY": "^CNXENERGY",
+    "NIFTYINFRA": "^CNXINFRA",
+    "NIFTYPHARMA": "^CNXPHARMA",
+    "NIFTYAUTO": "^CNXAUTO",
+    "NIFTYMETAL": "^CNXMETAL",
+    "NIFTYREALTY": "^CNXREALTY",
+    "NIFTYCONSUMPTION": "^CNXCONSUM",
+    "NIFTYCOMMODITIES": "^CNXCMDT",
+    "NIFTYMEDIA": "^CNXMEDIA",
+    "NIFTYPSUBANK": "^CNXPSUBANK",
+    "NIFTYPVTBANK": "NIFTY_PVT_BANK.NS",
+    "NIFTYSERVSECTOR": "^CNXSERVICE",
+    "NIFTYDIVOPPS50": "^CNXDIVOP",
+    "SENSEX": "^BSESN",
+    "NIFTYFINSERVICE": "NIFTY_FIN_SERVICE.NS"
+  }
+}
