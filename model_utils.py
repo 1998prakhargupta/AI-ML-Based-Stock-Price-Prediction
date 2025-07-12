@@ -525,3 +525,250 @@ def calculate_technical_indicators(data, price_col='Close'):
     df['MACD_signal'] = df['MACD'].ewm(span=9).mean()
     
     return df
+
+# Additional data validation utilities for ML models
+
+def validate_data_for_ml(data, target_column='Close', min_samples=100):
+    """
+    Comprehensive data validation for machine learning.
+    
+    Args:
+        data (pd.DataFrame): Input data
+        target_column (str): Name of target column
+        min_samples (int): Minimum required samples
+        
+    Returns:
+        dict: Validation results with status and recommendations
+    """
+    validation_results = {
+        'status': 'valid',
+        'warnings': [],
+        'errors': [],
+        'recommendations': [],
+        'data_quality_score': 0,
+        'metadata': {}
+    }
+    
+    try:
+        # Basic structure validation
+        if data is None or data.empty:
+            validation_results['status'] = 'error'
+            validation_results['errors'].append("Data is None or empty")
+            return validation_results
+        
+        # Sample size validation
+        if len(data) < min_samples:
+            validation_results['warnings'].append(f"Dataset has only {len(data)} samples, minimum recommended: {min_samples}")
+        
+        # Target column validation
+        if target_column not in data.columns:
+            close_cols = [col for col in data.columns if 'close' in col.lower()]
+            if close_cols:
+                validation_results['recommendations'].append(f"Target '{target_column}' not found, consider using: {close_cols[0]}")
+            else:
+                validation_results['errors'].append(f"Target column '{target_column}' not found and no suitable alternative")
+        else:
+            # Target quality validation
+            target_null_ratio = data[target_column].isna().sum() / len(data)
+            if target_null_ratio > 0.1:
+                validation_results['warnings'].append(f"Target column has {target_null_ratio*100:.1f}% missing values")
+            
+            # Target variance validation
+            if data[target_column].var() == 0:
+                validation_results['errors'].append("Target column has zero variance")
+        
+        # Feature validation
+        numeric_features = data.select_dtypes(include=[np.number]).columns.tolist()
+        if target_column in numeric_features:
+            numeric_features.remove(target_column)
+        
+        if len(numeric_features) == 0:
+            validation_results['errors'].append("No numeric features found")
+        else:
+            # Check for constant features
+            constant_features = []
+            for col in numeric_features:
+                if data[col].nunique() <= 1:
+                    constant_features.append(col)
+            
+            if constant_features:
+                validation_results['recommendations'].append(f"Remove {len(constant_features)} constant features: {constant_features[:5]}")
+            
+            # Check for high missing value features
+            high_missing_features = []
+            for col in numeric_features:
+                missing_ratio = data[col].isna().sum() / len(data)
+                if missing_ratio > 0.5:
+                    high_missing_features.append((col, missing_ratio))
+            
+            if high_missing_features:
+                validation_results['warnings'].append(f"{len(high_missing_features)} features have >50% missing values")
+        
+        # Data quality score calculation
+        total_cells = len(data) * len(data.columns)
+        non_null_cells = data.notna().sum().sum()
+        data_quality_score = (non_null_cells / total_cells) * 100 if total_cells > 0 else 0
+        
+        validation_results['data_quality_score'] = data_quality_score
+        validation_results['metadata'] = {
+            'total_samples': len(data),
+            'total_features': len(data.columns),
+            'numeric_features': len(numeric_features),
+            'data_quality_score': data_quality_score,
+            'date_range': (data.index.min(), data.index.max()) if hasattr(data.index, 'min') else ('N/A', 'N/A')
+        }
+        
+        # Overall status determination
+        if validation_results['errors']:
+            validation_results['status'] = 'error'
+        elif validation_results['warnings']:
+            validation_results['status'] = 'warning'
+        
+        logger.info(f"Data validation completed: {validation_results['status']}")
+        
+    except Exception as e:
+        validation_results['status'] = 'error'
+        validation_results['errors'].append(f"Validation failed: {str(e)}")
+        logger.error(f"Data validation error: {str(e)}")
+    
+    return validation_results
+
+def safe_train_test_split(features_data, target_data, test_size=0.2, validation_size=0.2, random_state=42):
+    """
+    Safely split data with validation and error handling.
+    
+    Args:
+        features_data (pd.DataFrame): Features
+        target_data (pd.Series): Target
+        test_size (float): Test set proportion
+        validation_size (float): Validation set proportion
+        random_state (int): Random state for reproducibility
+        
+    Returns:
+        tuple: Split datasets or None if split fails
+    """
+    try:
+        # Validate inputs
+        if len(features_data) != len(target_data):
+            raise ValueError(f"Features ({len(features_data)}) and target ({len(target_data)}) length mismatch")
+        
+        if len(features_data) < 10:
+            logger.warning(f"Very small dataset for splitting: {len(features_data)} samples")
+        
+        # Calculate split indices for time series (no shuffle)
+        n_samples = len(features_data)
+        test_start = int(n_samples * (1 - test_size))
+        val_start = int(test_start * (1 - validation_size))
+        
+        # Ensure minimum samples in each split
+        min_samples_per_split = 5
+        if val_start < min_samples_per_split or (test_start - val_start) < min_samples_per_split or (n_samples - test_start) < min_samples_per_split:
+            logger.warning("Insufficient data for proper train/val/test split, using simple train/test split")
+            # Simple train/test split
+            split_idx = int(n_samples * 0.8)
+            train_features = features_data.iloc[:split_idx]
+            test_features = features_data.iloc[split_idx:]
+            train_target = target_data.iloc[:split_idx]
+            test_target = target_data.iloc[split_idx:]
+            
+            logger.info(f"Simple split: Train {len(train_features)}, Test {len(test_features)}")
+            return train_features, None, test_features, train_target, None, test_target
+        
+        # Standard three-way split
+        train_features = features_data.iloc[:val_start]
+        val_features = features_data.iloc[val_start:test_start]
+        test_features = features_data.iloc[test_start:]
+        
+        train_target = target_data.iloc[:val_start]
+        val_target = target_data.iloc[val_start:test_start]
+        test_target = target_data.iloc[test_start:]
+        
+        logger.info(f"Data split completed - Train: {len(train_features)}, Val: {len(val_features)}, Test: {len(test_features)}")
+        
+        return train_features, val_features, test_features, train_target, val_target, test_target
+        
+    except Exception as e:
+        logger.error(f"Data splitting failed: {str(e)}")
+        return None
+
+def basic_ml_data_validation(data, target_column='Close'):
+    """
+    Basic data validation for machine learning.
+    
+    Args:
+        data (pd.DataFrame): Input data
+        target_column (str): Name of target column
+        
+    Returns:
+        dict: Simple validation results
+    """
+    results = {'valid': True, 'messages': []}
+    
+    if data is None or data.empty:
+        results['valid'] = False
+        results['messages'].append("Data is empty")
+        return results
+    
+    if target_column not in data.columns:
+        results['valid'] = False
+        results['messages'].append(f"Target column '{target_column}' not found")
+    
+    if len(data) < 50:
+        results['messages'].append(f"Small dataset: {len(data)} samples")
+    
+    numeric_cols = data.select_dtypes(include=[np.number]).columns
+    if len(numeric_cols) < 2:
+        results['messages'].append("Few numeric columns available")
+    
+    logger.info(f"Basic validation: {'✅ Valid' if results['valid'] else '❌ Invalid'}")
+    return results
+
+def safe_feature_preparation(data, target_col='Close', max_features=100):
+    """
+    Safely prepare features with validation.
+    
+    Args:
+        data (pd.DataFrame): Input data
+        target_col (str): Target column
+        max_features (int): Maximum number of features
+        
+    Returns:
+        tuple: (features, target) or (None, None) if preparation fails
+    """
+    try:
+        # Basic validation
+        validation = basic_ml_data_validation(data, target_col)
+        if not validation['valid']:
+            logger.error(f"Data validation failed: {validation['messages']}")
+            return None, None
+        
+        # Select numeric columns
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        feature_cols = [col for col in numeric_cols if col != target_col]
+        
+        # Limit features if too many
+        if len(feature_cols) > max_features:
+            # Simple feature selection based on correlation with target
+            correlations = data[feature_cols].corrwith(data[target_col]).abs()
+            top_features = correlations.nlargest(max_features).index.tolist()
+            feature_cols = top_features
+        
+        # Prepare final data
+        features = data[feature_cols].copy()
+        target = data[target_col].copy()
+        
+        # Handle missing values
+        features = features.fillna(method='ffill').fillna(method='bfill')
+        target = target.fillna(method='ffill').fillna(method='bfill')
+        
+        # Remove rows with remaining NaN
+        valid_mask = features.notna().all(axis=1) & target.notna()
+        features = features[valid_mask]
+        target = target[valid_mask]
+        
+        logger.info(f"Feature preparation completed: {features.shape}, target: {len(target)}")
+        return features, target
+        
+    except Exception as e:
+        logger.error(f"Feature preparation failed: {str(e)}")
+        return None, None
