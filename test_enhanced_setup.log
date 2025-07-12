@@ -208,3 +208,101 @@
 2025-07-10 03:52:20,330 - __main__ - INFO - run_comprehensive_test:240 - 
 🎯 Overall Result: 2/4 tests passed
 2025-07-10 03:52:20,330 - __main__ - WARNING - run_comprehensive_test:246 - ⚠️ 2 tests failed. Please check the logs above.
+2025-07-12 18:51:59,525 - __main__ - INFO - run_comprehensive_test:196 - 🚀 Starting comprehensive enhanced utilities test
+2025-07-12 18:51:59,529 - __main__ - INFO - run_comprehensive_test:197 - ============================================================
+2025-07-12 18:51:59,529 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Import Test...
+2025-07-12 18:51:59,529 - __main__ - INFO - test_imports:32 - 🧪 Testing imports...
+2025-07-12 18:51:59,530 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:51:59,530 - __main__ - INFO - test_imports:35 - ✅ Config imported successfully
+2025-07-12 18:51:59,833 - __main__ - INFO - test_imports:45 - ✅ Data processing utilities imported successfully
+2025-07-12 18:52:00,635 - __main__ - INFO - test_imports:53 - ✅ Enhanced Breeze utilities imported successfully
+2025-07-12 18:52:00,635 - __main__ - INFO - run_comprehensive_test:213 - ✅ Import Test PASSED
+2025-07-12 18:52:00,636 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Utility Initialization Test...
+2025-07-12 18:52:00,636 - __main__ - INFO - test_utility_initialization:68 - 🧪 Testing utility initialization...
+2025-07-12 18:52:00,638 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:52:00,639 - __main__ - INFO - test_utility_initialization:76 - ✅ Config initialized successfully
+2025-07-12 18:52:00,639 - __main__ - INFO - test_utility_initialization:80 - ✅ TechnicalIndicatorProcessor initialized successfully
+2025-07-12 18:52:00,640 - __main__ - INFO - test_utility_initialization:83 - ✅ OptionsDataProcessor initialized successfully
+2025-07-12 18:52:00,642 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:52:00,643 - enhanced_breeze_utils.EnhancedBreezeDataManager - ERROR - _initialize_paths:115 - Failed to initialize paths: [Errno 13] Permission denied: '/content'
+2025-07-12 18:52:00,644 - enhanced_breeze_utils.EnhancedBreezeDataManager - WARNING - _initialize_paths:119 - Using fallback path: /home/prakharg/React_Projects/price_predictor/Major_Project/data
+2025-07-12 18:52:00,644 - __main__ - INFO - test_utility_initialization:88 - ✅ EnhancedBreezeDataManager initialized successfully
+2025-07-12 18:52:00,644 - __main__ - WARNING - test_utility_initialization:96 - ⚠️ OptionChainAnalyzer initialization failed (expected without credentials): __init__() missing 1 required positional argument: 'breeze_manager'
+2025-07-12 18:52:00,644 - __main__ - INFO - run_comprehensive_test:213 - ✅ Utility Initialization Test PASSED
+2025-07-12 18:52:00,645 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Error Handling Test...
+2025-07-12 18:52:00,645 - __main__ - INFO - test_error_handling:108 - 🧪 Testing error handling...
+2025-07-12 18:52:00,645 - __main__ - INFO - test_error_handling:116 - ✅ ValidationError caught successfully: Test validation error
+2025-07-12 18:52:00,646 - __main__ - INFO - test_error_handling:121 - ✅ ProcessingError caught successfully: Test processing error
+2025-07-12 18:52:00,657 - __main__ - INFO - test_error_handling:133 - ✅ Success ProcessingResult created successfully: success=True
+2025-07-12 18:52:00,659 - __main__ - INFO - test_error_handling:144 - ✅ Error ProcessingResult created successfully: success=False
+2025-07-12 18:52:00,660 - __main__ - INFO - run_comprehensive_test:213 - ✅ Error Handling Test PASSED
+2025-07-12 18:52:00,661 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Data Structures Test...
+2025-07-12 18:52:00,662 - __main__ - INFO - test_data_structures:156 - 🧪 Testing data structures...
+2025-07-12 18:52:00,662 - __main__ - INFO - test_data_structures:170 - ✅ MarketDataRequest created successfully: TCS
+2025-07-12 18:52:00,665 - __main__ - INFO - test_data_structures:181 - ✅ APIResponse created successfully: success=True
+2025-07-12 18:52:00,666 - __main__ - INFO - test_data_structures:185 - ✅ DataQuality enum works: DataQuality.EXCELLENT
+2025-07-12 18:52:00,666 - __main__ - INFO - run_comprehensive_test:213 - ✅ Data Structures Test PASSED
+2025-07-12 18:52:00,667 - __main__ - INFO - run_comprehensive_test:221 - 
+============================================================
+2025-07-12 18:52:00,668 - __main__ - INFO - run_comprehensive_test:222 - 📊 TEST SUMMARY
+2025-07-12 18:52:00,668 - __main__ - INFO - run_comprehensive_test:223 - ============================================================
+2025-07-12 18:52:00,669 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Import Test
+2025-07-12 18:52:00,669 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Utility Initialization Test
+2025-07-12 18:52:00,670 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Error Handling Test
+2025-07-12 18:52:00,670 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Data Structures Test
+2025-07-12 18:52:00,671 - __main__ - INFO - run_comprehensive_test:232 - 
+🎯 Overall Result: 4/4 tests passed
+2025-07-12 18:52:00,671 - __main__ - INFO - run_comprehensive_test:235 - 🎉 ALL TESTS PASSED! Enhanced modular setup is working correctly.
+2025-07-12 18:52:19,286 - __main__ - INFO - run_comprehensive_test:196 - 🚀 Starting comprehensive enhanced utilities test
+2025-07-12 18:52:19,286 - __main__ - INFO - run_comprehensive_test:197 - ============================================================
+2025-07-12 18:52:19,287 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Import Test...
+2025-07-12 18:52:19,287 - __main__ - INFO - test_imports:32 - 🧪 Testing imports...
+2025-07-12 18:52:19,287 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:52:19,287 - __main__ - INFO - test_imports:35 - ✅ Config imported successfully
+2025-07-12 18:52:19,561 - __main__ - INFO - test_imports:45 - ✅ Data processing utilities imported successfully
+2025-07-12 18:52:20,410 - __main__ - INFO - test_imports:53 - ✅ Enhanced Breeze utilities imported successfully
+2025-07-12 18:52:20,411 - __main__ - INFO - run_comprehensive_test:213 - ✅ Import Test PASSED
+2025-07-12 18:52:20,411 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Utility Initialization Test...
+2025-07-12 18:52:20,411 - __main__ - INFO - test_utility_initialization:68 - 🧪 Testing utility initialization...
+2025-07-12 18:52:20,413 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:52:20,413 - __main__ - INFO - test_utility_initialization:76 - ✅ Config initialized successfully
+2025-07-12 18:52:20,413 - __main__ - INFO - test_utility_initialization:80 - ✅ TechnicalIndicatorProcessor initialized successfully
+2025-07-12 18:52:20,414 - __main__ - INFO - test_utility_initialization:83 - ✅ OptionsDataProcessor initialized successfully
+2025-07-12 18:52:20,415 - app_config - INFO - load_config:48 - Loaded config from config.json
+2025-07-12 18:52:20,415 - enhanced_breeze_utils.EnhancedBreezeDataManager - ERROR - _initialize_paths:115 - Failed to initialize paths: [Errno 13] Permission denied: '/content'
+2025-07-12 18:52:20,416 - enhanced_breeze_utils.EnhancedBreezeDataManager - WARNING - _initialize_paths:119 - Using fallback path: /home/prakharg/React_Projects/price_predictor/Major_Project/data
+2025-07-12 18:52:20,416 - __main__ - INFO - test_utility_initialization:88 - ✅ EnhancedBreezeDataManager initialized successfully
+2025-07-12 18:52:20,416 - __main__ - WARNING - test_utility_initialization:96 - ⚠️ OptionChainAnalyzer initialization failed (expected without credentials): __init__() missing 1 required positional argument: 'breeze_manager'
+2025-07-12 18:52:20,417 - __main__ - INFO - run_comprehensive_test:213 - ✅ Utility Initialization Test PASSED
+2025-07-12 18:52:20,417 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Error Handling Test...
+2025-07-12 18:52:20,417 - __main__ - INFO - test_error_handling:108 - 🧪 Testing error handling...
+2025-07-12 18:52:20,418 - __main__ - INFO - test_error_handling:116 - ✅ ValidationError caught successfully: Test validation error
+2025-07-12 18:52:20,418 - __main__ - INFO - test_error_handling:121 - ✅ ProcessingError caught successfully: Test processing error
+2025-07-12 18:52:20,421 - __main__ - INFO - test_error_handling:133 - ✅ Success ProcessingResult created successfully: success=True
+2025-07-12 18:52:20,422 - __main__ - INFO - test_error_handling:144 - ✅ Error ProcessingResult created successfully: success=False
+2025-07-12 18:52:20,422 - __main__ - INFO - run_comprehensive_test:213 - ✅ Error Handling Test PASSED
+2025-07-12 18:52:20,423 - __main__ - INFO - run_comprehensive_test:208 - 
+📋 Running Data Structures Test...
+2025-07-12 18:52:20,423 - __main__ - INFO - test_data_structures:156 - 🧪 Testing data structures...
+2025-07-12 18:52:20,423 - __main__ - INFO - test_data_structures:170 - ✅ MarketDataRequest created successfully: TCS
+2025-07-12 18:52:20,425 - __main__ - INFO - test_data_structures:181 - ✅ APIResponse created successfully: success=True
+2025-07-12 18:52:20,425 - __main__ - INFO - test_data_structures:185 - ✅ DataQuality enum works: DataQuality.EXCELLENT
+2025-07-12 18:52:20,425 - __main__ - INFO - run_comprehensive_test:213 - ✅ Data Structures Test PASSED
+2025-07-12 18:52:20,426 - __main__ - INFO - run_comprehensive_test:221 - 
+============================================================
+2025-07-12 18:52:20,426 - __main__ - INFO - run_comprehensive_test:222 - 📊 TEST SUMMARY
+2025-07-12 18:52:20,426 - __main__ - INFO - run_comprehensive_test:223 - ============================================================
+2025-07-12 18:52:20,426 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Import Test
+2025-07-12 18:52:20,427 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Utility Initialization Test
+2025-07-12 18:52:20,427 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Error Handling Test
+2025-07-12 18:52:20,427 - __main__ - INFO - run_comprehensive_test:230 - ✅ PASS - Data Structures Test
+2025-07-12 18:52:20,427 - __main__ - INFO - run_comprehensive_test:232 - 
+🎯 Overall Result: 4/4 tests passed
+2025-07-12 18:52:20,428 - __main__ - INFO - run_comprehensive_test:235 - 🎉 ALL TESTS PASSED! Enhanced modular setup is working correctly.

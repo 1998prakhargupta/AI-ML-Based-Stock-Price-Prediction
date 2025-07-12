@@ -13,6 +13,9 @@ from breeze_connect import BreezeConnect
 from app_config import Config
 from data_processing_utils import ProcessingResult, ValidationError, ProcessingError
 
+# Constants
+ISO_DATETIME_SUFFIX = ".000Z"
+
 # Setup comprehensive logging
 logging.basicConfig(
     level=logging.INFO, 
@@ -79,150 +82,126 @@ def ensure_dir(path):
     logger.info(f"Ensured directory exists: {path}")
 
     
-    def get_date_iso(self, days_ago=0):
-        """Get ISO formatted date string with error handling."""
-        try:
-            date = datetime.now() - timedelta(days=days_ago)
-            date = date.replace(hour=9, minute=0, second=0, microsecond=0)
-            return date.isoformat() + ".000Z"
-        except Exception as e:
-            logger.error(f"Date formatting error: {str(e)}")
-            raise ProcessingError(f"Failed to format date: {str(e)}")
+def get_date_iso(self, days_ago=0):
+    """Get ISO formatted date string with error handling."""
+    try:
+        date = datetime.now() - timedelta(days=days_ago)
+        date = date.replace(hour=9, minute=0, second=0, microsecond=0)
+        return date.isoformat() + ISO_DATETIME_SUFFIX
+    except Exception as e:
+        logger.error(f"Date formatting error: {str(e)}")
+        raise ProcessingError(f"Failed to format date: {str(e)}")
 
-    def get_end_date_iso(self):
-        """Get ISO formatted end date string with error handling."""
-        try:
-            date = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
-            return date.isoformat() + ".000Z"
-        except Exception as e:
-            logger.error(f"End date formatting error: {str(e)}")
-            raise ProcessingError(f"Failed to format end date: {str(e)}")
+def get_end_date_iso(self):
+    """Get ISO formatted end date string with error handling."""
+    try:
+        date = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
+        return date.isoformat() + ISO_DATETIME_SUFFIX
+    except Exception as e:
+        logger.error(f"End date formatting error: {str(e)}")
+        raise ProcessingError(f"Failed to format end date: {str(e)}")
 
-    def get_last_trading_day(self, days_back=0):
-        """Get the last trading day with enhanced error handling."""
-        try:
-            if not self.breeze:
-                raise ValidationError("Breeze not authenticated")
-                
-            date = datetime.now() - timedelta(days=days_back)
-            attempts = 0
-            max_attempts = 10
+def get_last_trading_day(self, days_back=0):
+    """Get the last trading day with enhanced error handling."""
+    try:
+        if not self.breeze:
+            raise ValidationError("Breeze not authenticated")
             
-            while attempts < max_attempts:
-                # Skip weekends
-                if date.weekday() >= 5:  # 5=Saturday, 6=Sunday
-                    date -= timedelta(days=1)
-                    attempts += 1
-                    continue
-
-                # Verify trading day by checking index data
-                try:
-                    response = self.breeze.get_historical_data_v2(
-                        interval="1day",
-                        from_date=date.replace(hour=9, minute=0, second=0, microsecond=0).isoformat() + ".000Z",
-                        to_date=date.replace(hour=15, minute=30, second=0, microsecond=0).isoformat() + ".000Z",
-                        stock_code="NIFTY",
-                        exchange_code="NSE",
-                        product_type="cash"
-                    )
-                    
-                    if response.get('Status') == 200 and response.get('Success'):
-                        logger.info(f"Found trading day: {date.strftime('%Y-%m-%d')}")
-                        return date
-                        
-                except Exception as api_error:
-                    logger.debug(f"API check failed for {date}: {str(api_error)}")
-
-                date -= timedelta(days=1)
-                attempts += 1
-
-            # Fallback to current date if no trading day found
-            logger.warning(f"Could not find trading day in {max_attempts} attempts, using current date")
-            return datetime.now()
-            
-        except ValidationError as e:
-            logger.error(f"Validation error in get_last_trading_day: {str(e)}")
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error in get_last_trading_day: {str(e)}")
-            return datetime.now()  # Graceful fallback
+        date = datetime.now() - timedelta(days=days_back)
+        attempts = 0
+        max_attempts = 10
         
         while attempts < max_attempts:
-            if date.weekday() >= 5:  # Skip weekends
+            # Skip weekends
+            # 5=Saturday, 6=Sunday
+            if date.weekday() >= 5:  
                 date -= timedelta(days=1)
                 attempts += 1
                 continue
-                
+
+            # Verify trading day by checking index data
             try:
                 response = self.breeze.get_historical_data_v2(
                     interval="1day",
-                    from_date=self.get_date_iso(0),
-                    to_date=self.get_end_date_iso(),
+                    from_date=date.replace(hour=9, minute=0, second=0, microsecond=0).isoformat() + ISO_DATETIME_SUFFIX,
+                    to_date=date.replace(hour=15, minute=30, second=0, microsecond=0).isoformat() + ISO_DATETIME_SUFFIX,
                     stock_code="NIFTY",
                     exchange_code="NSE",
                     product_type="cash"
                 )
-                if response['Status'] == 200:
-                    return date
-            except Exception as e:
-                logger.warning(f"Error checking trading day: {e}")
                 
+                if response.get('Status') == 200 and response.get('Success'):
+                    logger.info(f"Found trading day: {date.strftime('%Y-%m-%d')}")
+                    return date
+                    
+            except Exception as api_error:
+                logger.debug(f"API check failed for {date}: {str(api_error)}")
+
             date -= timedelta(days=1)
             attempts += 1
-            
-        return datetime.now()
 
-    def fetch_historical_data(self, stock_code, exchange_code, from_date, to_date, interval="5minute"):
-        """Fetch historical data for a given stock."""
-        if not self.breeze:
-            raise ValueError("Breeze API not authenticated")
-            
-        try:
-            response = self.breeze.get_historical_data_v2(
-                interval=interval,
-                from_date=from_date,
-                to_date=to_date,
-                stock_code=stock_code,
-                exchange_code=exchange_code,
-                product_type="cash"
-            )
-            
-            if response['Status'] == 200:
-                df = pd.DataFrame(response['Result'])
-                if not df.empty:
-                    # Clean and process the data
-                    df = self._clean_data(df)
-                    return df
-            else:
-                logger.error(f"API Error: {response}")
-                return pd.DataFrame()
-                
-        except Exception as e:
-            logger.error(f"Error fetching data for {stock_code}: {e}")
+        # Fallback to current date if no trading day found
+        logger.warning(f"Could not find trading day in {max_attempts} attempts, using current date")
+        return datetime.now()
+        
+    except ValidationError as e:
+        logger.error(f"Validation error in get_last_trading_day: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in get_last_trading_day: {str(e)}")
+        return datetime.now()  # Graceful fallback
+
+def fetch_historical_data(self, stock_code, exchange_code, from_date, to_date, interval="5minute"):
+    """Fetch historical data for a given stock."""
+    if not self.breeze:
+        raise ValueError("Breeze API not authenticated")
+        
+    try:
+        response = self.breeze.get_historical_data_v2(
+            interval=interval,
+            from_date=from_date,
+            to_date=to_date,
+            stock_code=stock_code,
+            exchange_code=exchange_code,
+            product_type="cash"
+        )
+        
+        if response['Status'] == 200:
+            df = pd.DataFrame(response['Result'])
+            if not df.empty:
+                # Clean and process the data
+                df = self._clean_data(df)
+                return df
+        else:
+            logger.error(f"API Error: {response}")
             return pd.DataFrame()
-    
-    def _clean_data(self, df):
-        """Clean and standardize the data format."""
-        try:
-            # Convert datetime column
-            if 'datetime' in df.columns:
-                df['datetime'] = pd.to_datetime(df['datetime'])
-                df.set_index('datetime', inplace=True)
             
-            # Convert numeric columns
-            numeric_cols = ['open', 'high', 'low', 'close', 'volume']
-            for col in numeric_cols:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
-            
-            # Remove rows with all NaN values
-            df = df.dropna(how='all')
-            
-            return df
-            
-        except Exception as e:
-            logger.error(f"Error cleaning data: {e}")
-            return df
+    except Exception as e:
+        logger.error(f"Error fetching data for {stock_code}: {e}")
+        return pd.DataFrame()
+
+def _clean_data(self, df):
+    """Clean and standardize the data format."""
+    try:
+        # Convert datetime column
+        if 'datetime' in df.columns:
+            df['datetime'] = pd.to_datetime(df['datetime'])
+            df.set_index('datetime', inplace=True)
+        
+        # Convert numeric columns
+        numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+        
+        # Remove rows with all NaN values
+        df = df.dropna(how='all')
+        
+        return df
+        
+    except Exception as e:
+        logger.error(f"Error cleaning data: {e}")
+        return df
 
 def detect_strike_step(strikes):
     """Detect strike price step from a list of strikes."""

@@ -4,6 +4,7 @@ This module provides secure, modular, and robust data processing capabilities.
 """
 
 import logging
+import os
 import traceback
 import pandas as pd
 import numpy as np

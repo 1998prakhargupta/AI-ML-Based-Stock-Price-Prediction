@@ -12,8 +12,20 @@ from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import matplotlib.pyplot as plt
-import seaborn as sns
+
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    PLOTTING_AVAILABLE = True
+except ImportError:
+    plt = None
+    sns = None
+    PLOTTING_AVAILABLE = False
+    print("Warning: matplotlib/seaborn not available, plotting functions will be disabled")
+
+# Constants
+PLOTTING_WARNING = "Plotting not available - matplotlib/seaborn not installed"
+
 from app_config import Config
 
 # Setup logging
@@ -57,42 +69,42 @@ class ModelDataProcessor:
             else:
                 raise ValueError("No suitable target column found")
         
-        X = numeric_data.drop(columns=[target_col])
-        y = numeric_data[target_col]
+        features_data = numeric_data.drop(columns=[target_col])
+        target_data = numeric_data[target_col]
         
         # Feature selection if requested
-        if feature_selection and len(X.columns) > 100:
-            X = self._select_features(X, y)
+        if feature_selection and len(features_data.columns) > 100:
+            features_data = self._select_features(features_data, target_data)
         
-        self.feature_names = X.columns.tolist()
-        logger.info(f"Prepared {len(X.columns)} features for training")
+        self.feature_names = features_data.columns.tolist()
+        logger.info(f"Prepared {len(features_data.columns)} features for training")
         
-        return X, y, self.feature_names
+        return features_data, target_data, self.feature_names
     
-    def _select_features(self, X, y, max_features=100):
+    def _select_features(self, features_df, target_series, max_features=100):
         """Select top features based on correlation with target."""
         logger.info(f"Selecting top {max_features} features")
         
         # Calculate correlation with target
-        correlations = X.corrwith(y).abs().sort_values(ascending=False)
+        correlations = features_df.corrwith(target_series).abs().sort_values(ascending=False)
         
         # Select top features
         top_features = correlations.head(max_features).index.tolist()
         
         logger.info(f"Selected {len(top_features)} features")
-        return X[top_features]
+        return features_df[top_features]
     
-    def scale_features(self, X_train, X_test=None, method='standard'):
+    def scale_features(self, train_features, test_features=None, method='standard'):
         """
         Scale features using specified method.
         
         Args:
-            X_train (pd.DataFrame): Training features
-            X_test (pd.DataFrame): Test features (optional)
+            train_features (pd.DataFrame): Training features
+            test_features (pd.DataFrame): Test features (optional)
             method (str): Scaling method ('standard', 'minmax', 'robust')
             
         Returns:
-            tuple: (X_train_scaled, X_test_scaled)
+            tuple: (train_features_scaled, test_features_scaled)
         """
         logger.info(f"Scaling features using {method} scaler")
         
@@ -105,23 +117,23 @@ class ModelDataProcessor:
         else:
             raise ValueError("Method must be 'standard', 'minmax', or 'robust'")
         
-        X_train_scaled = pd.DataFrame(
-            scaler.fit_transform(X_train),
-            columns=X_train.columns,
-            index=X_train.index
+        train_features_scaled = pd.DataFrame(
+            scaler.fit_transform(train_features),
+            columns=train_features.columns,
+            index=train_features.index
         )
         
         self.scalers[method] = scaler
         
-        X_test_scaled = None
-        if X_test is not None:
-            X_test_scaled = pd.DataFrame(
-                scaler.transform(X_test),
-                columns=X_test.columns,
-                index=X_test.index
+        test_features_scaled = None
+        if test_features is not None:
+            test_features_scaled = pd.DataFrame(
+                scaler.transform(test_features),
+                columns=test_features.columns,
+                index=test_features.index
             )
         
-        return X_train_scaled, X_test_scaled
+        return train_features_scaled, test_features_scaled
     
     def create_sequences(self, data, sequence_length=60, target_col='Close'):
         """
@@ -138,55 +150,55 @@ class ModelDataProcessor:
         logger.info(f"Creating sequences with length {sequence_length}")
         
         # Prepare features
-        X, y, _ = self.prepare_features(data, target_col)
+        features_data, target_data, _ = self.prepare_features(data, target_col)
         
         # Scale features
-        X_scaled, _ = self.scale_features(X, method='minmax')
+        features_scaled, _ = self.scale_features(features_data, method='minmax')
         
         sequences = []
         targets = []
         
-        for i in range(sequence_length, len(X_scaled)):
-            sequences.append(X_scaled.iloc[i-sequence_length:i].values)
-            targets.append(y.iloc[i])
+        for i in range(sequence_length, len(features_scaled)):
+            sequences.append(features_scaled.iloc[i-sequence_length:i].values)
+            targets.append(target_data.iloc[i])
         
-        X_sequences = np.array(sequences)
-        y_sequences = np.array(targets)
+        sequences_array = np.array(sequences)
+        targets_array = np.array(targets)
         
-        logger.info(f"Created {len(X_sequences)} sequences")
-        return X_sequences, y_sequences
+        logger.info(f"Created {len(sequences_array)} sequences")
+        return sequences_array, targets_array
     
-    def split_time_series(self, X, y, test_size=0.2, validation_size=0.2):
+    def split_time_series(self, features_data, target_data, test_size=0.2, validation_size=0.2):
         """
         Split time series data maintaining temporal order.
         
         Args:
-            X (pd.DataFrame): Features
-            y (pd.Series): Target
+            features_data (pd.DataFrame): Features
+            target_data (pd.Series): Target
             test_size (float): Proportion for test set
             validation_size (float): Proportion for validation set
             
         Returns:
-            tuple: (X_train, X_val, X_test, y_train, y_val, y_test)
+            tuple: (train_features, val_features, test_features, train_target, val_target, test_target)
         """
-        n_samples = len(X)
+        n_samples = len(features_data)
         
         # Calculate split indices
         test_start = int(n_samples * (1 - test_size))
         val_start = int(test_start * (1 - validation_size))
         
         # Split data
-        X_train = X.iloc[:val_start]
-        X_val = X.iloc[val_start:test_start]
-        X_test = X.iloc[test_start:]
+        train_features = features_data.iloc[:val_start]
+        val_features = features_data.iloc[val_start:test_start]
+        test_features = features_data.iloc[test_start:]
         
-        y_train = y.iloc[:val_start]
-        y_val = y.iloc[val_start:test_start]
-        y_test = y.iloc[test_start:]
+        train_target = target_data.iloc[:val_start]
+        val_target = target_data.iloc[val_start:test_start]
+        test_target = target_data.iloc[test_start:]
         
-        logger.info(f"Data split - Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
+        logger.info(f"Data split - Train: {len(train_features)}, Val: {len(val_features)}, Test: {len(test_features)}")
         
-        return X_train, X_val, X_test, y_train, y_val, y_test
+        return train_features, val_features, test_features, train_target, val_target, test_target
 
 class ModelEvaluator:
     """Model evaluation utilities."""
@@ -226,7 +238,11 @@ class ModelEvaluator:
             title (str): Plot title
             save_path (str): Path to save plot (optional)
         """
-        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        if not PLOTTING_AVAILABLE:
+            logger.warning(PLOTTING_WARNING)
+            return
+            
+        _, axes = plt.subplots(2, 2, figsize=(15, 10))
         
         # Time series plot
         axes[0, 0].plot(y_true, label='Actual', alpha=0.8, linewidth=1.5)
@@ -279,6 +295,10 @@ class ModelEvaluator:
             top_n (int): Number of top features to plot
             save_path (str): Path to save plot (optional)
         """
+        if not PLOTTING_AVAILABLE:
+            logger.warning(PLOTTING_WARNING)
+            return
+            
         if not hasattr(model, 'feature_importances_'):
             logger.warning("Model does not have feature_importances_ attribute")
             return
@@ -308,9 +328,13 @@ class ModelEvaluator:
             results_dict (dict): Dictionary with model names as keys and metrics as values
             save_path (str): Path to save plot (optional)
         """
+        if not PLOTTING_AVAILABLE:
+            logger.warning(PLOTTING_WARNING)
+            return
+            
         metrics_df = pd.DataFrame(results_dict).T
         
-        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        _, axes = plt.subplots(2, 2, figsize=(15, 10))
         
         # MSE comparison
         axes[0, 0].bar(metrics_df.index, metrics_df['MSE'])
@@ -349,8 +373,27 @@ class ModelManager:
     
     def __init__(self):
         self.config = Config()
-        self.model_save_path = self.config.get_model_save_path()
-        os.makedirs(self.model_save_path, exist_ok=True)
+        self.model_save_path = self._initialize_model_path()
+    
+    def _initialize_model_path(self) -> str:
+        """
+        Initialize and create model save directory.
+        
+        Returns:
+            str: Model save path
+        """
+        try:
+            model_path = self.config.get_model_save_path()
+            os.makedirs(model_path, exist_ok=True)
+            logger.info(f"Model save path initialized: {model_path}")
+            return model_path
+        except Exception as e:
+            logger.error(f"Failed to initialize model path: {e}")
+            # Fallback to current directory
+            fallback_path = os.path.join(os.getcwd(), "models")
+            os.makedirs(fallback_path, exist_ok=True)
+            logger.warning(f"Using fallback model path: {fallback_path}")
+            return fallback_path
     
     def save_model(self, model, model_name, metadata=None):
         """

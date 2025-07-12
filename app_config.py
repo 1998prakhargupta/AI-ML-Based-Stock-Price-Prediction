@@ -76,9 +76,37 @@ class Config:
     
     def get_data_paths(self) -> Dict[str, str]:
         """Get data storage paths."""
-        google_drive = self._config.get('GOOGLE_DRIVE_PATH', '/content/drive/MyDrive/')
-        data_path = self._config.get('DATA_SAVE_PATH') or os.path.join(google_drive, 'BreezeData')
-        model_path = self._config.get('MODEL_SAVE_PATH') or os.path.join(google_drive, 'Models')
+        # Check if we're in a Colab environment
+        try:
+            # Try to import google.colab to check if we're in Colab
+            __import__('google.colab')
+            is_colab = True
+        except ImportError:
+            is_colab = False
+        
+        if is_colab:
+            # We're in Colab, use the original paths from config
+            google_drive = self._config.get('GOOGLE_DRIVE_PATH', '/content/drive/MyDrive/')
+            data_path = self._config.get('DATA_SAVE_PATH') or os.path.join(google_drive, 'BreezeData')
+            model_path = self._config.get('MODEL_SAVE_PATH') or os.path.join(google_drive, 'Models')
+        else:
+            # We're not in Colab, use local paths and ignore config values pointing to /content
+            current_dir = os.getcwd()
+            configured_data_path = self._config.get('DATA_SAVE_PATH', '')
+            configured_model_path = self._config.get('MODEL_SAVE_PATH', '')
+            
+            # If paths point to /content (Colab), use local alternatives
+            if configured_data_path.startswith('/content'):
+                data_path = os.path.join(current_dir, 'data')
+            else:
+                data_path = configured_data_path or os.path.join(current_dir, 'data')
+                
+            if configured_model_path.startswith('/content'):
+                model_path = os.path.join(current_dir, 'models')
+            else:
+                model_path = configured_model_path or os.path.join(current_dir, 'models')
+                
+            google_drive = current_dir
         
         return {
             'google_drive': google_drive,

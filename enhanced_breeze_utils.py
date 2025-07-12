@@ -22,6 +22,9 @@ from data_processing_utils import (
     TechnicalIndicatorProcessor
 )
 
+# Constants
+ISO_DATETIME_SUFFIX = ".000Z"
+
 # Setup comprehensive logging
 logging.basicConfig(
     level=logging.INFO,
@@ -451,11 +454,11 @@ class EnhancedBreezeDataManager:
         try:
             date = datetime.now() - timedelta(days=days_ago)
             date = date.replace(hour=9, minute=0, second=0, microsecond=0)
-            return date.isoformat() + ".000Z"
+            return date.isoformat() + ISO_DATETIME_SUFFIX
         except Exception as e:
             self.logger.error(f"Error generating date ISO: {e}")
             # Fallback to current time
-            return datetime.now().isoformat() + ".000Z"
+            return datetime.now().isoformat() + ISO_DATETIME_SUFFIX
     
     def get_end_date_iso(self) -> str:
         """
@@ -466,10 +469,10 @@ class EnhancedBreezeDataManager:
         """
         try:
             date = datetime.now().replace(hour=15, minute=30, second=0, microsecond=0)
-            return date.isoformat() + ".000Z"
+            return date.isoformat() + ISO_DATETIME_SUFFIX
         except Exception as e:
             self.logger.error(f"Error generating end date ISO: {e}")
-            return datetime.now().isoformat() + ".000Z"
+            return datetime.now().isoformat() + ISO_DATETIME_SUFFIX
     
     def get_last_trading_day(self, days_back: int = 0) -> datetime:
         """
@@ -552,15 +555,19 @@ class EnhancedBreezeDataManager:
             data.to_csv(file_path, index=False)
             
             # Save metadata
+            # Extract datetime range if datetime column exists
+            date_range = None
+            if 'datetime' in data.columns:
+                min_date = data['datetime'].min()
+                max_date = data['datetime'].max()
+                date_range = {'min': min_date, 'max': max_date}
+            
             metadata = {
                 'filename': filename,
                 'save_timestamp': datetime.now().isoformat(),
                 'data_shape': data.shape,
                 'columns': list(data.columns),
-                'date_range': {
-                    'min': data['datetime'].min() if 'datetime' in data.columns else None,
-                    'max': data['datetime'].max() if 'datetime' in data.columns else None
-                } if 'datetime' in data.columns else None
+                'date_range': date_range
             }
             
             if additional_metadata:
@@ -616,8 +623,8 @@ class OptionChainAnalyzer:
                         exchange_code="NFO",
                         product_type="futures",
                         interval="30minute",
-                        from_date=self.breeze_manager.get_last_trading_day(5).strftime('%Y-%m-%d') + "T09:00:00.000Z",
-                        to_date=self.breeze_manager.get_last_trading_day(0).strftime('%Y-%m-%d') + "T15:45:00.000Z",
+                        from_date=self.breeze_manager.get_last_trading_day(5).strftime('%Y-%m-%d') + "T09:00:00" + ISO_DATETIME_SUFFIX,
+                        to_date=self.breeze_manager.get_last_trading_day(0).strftime('%Y-%m-%d') + "T15:45:00" + ISO_DATETIME_SUFFIX,
                         expiry_date=expiry_str
                     )
                     
@@ -692,8 +699,8 @@ class OptionChainAnalyzer:
                             exchange_code="NFO",
                             product_type="options",
                             interval="5minute",
-                            from_date=self.breeze_manager.get_last_trading_day(30).strftime('%Y-%m-%d') + "T09:00:00.000Z",
-                            to_date=self.breeze_manager.get_last_trading_day(0).strftime('%Y-%m-%d') + "T15:30:00.000Z",
+                            from_date=self.breeze_manager.get_last_trading_day(30).strftime('%Y-%m-%d') + "T09:00:00" + ISO_DATETIME_SUFFIX,
+                            to_date=self.breeze_manager.get_last_trading_day(0).strftime('%Y-%m-%d') + "T15:30:00" + ISO_DATETIME_SUFFIX,
                             expiry_date=expiry_date,
                             strike_price=strike,
                             right=right
