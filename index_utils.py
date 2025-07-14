@@ -11,19 +11,26 @@ from datetime import datetime, timedelta
 from functools import reduce
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from app_config import Config
+from file_management_utils import SafeFileManager, SaveStrategy, safe_save_dataframe
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class IndexDataManager:
-    """Manager for NSE index data operations using yfinance."""
+    """🛡️ ENHANCED: Manager for NSE index data operations with safe file management."""
     
     def __init__(self):
         self.config = Config()
         self.save_path = self.config.get_data_save_path()
         self.index_symbols = self.config.get_index_symbols()
         self._ensure_directories()
+        
+        # Initialize safe file manager
+        self.file_manager = SafeFileManager(
+            base_path=self.save_path,
+            default_strategy=SaveStrategy.VERSION
+        )
     
     def _ensure_directories(self):
         """Ensure required directories exist."""
@@ -58,13 +65,21 @@ class IndexDataManager:
                 df = yf.download(symbol, start=start_date, end=end_date, interval=interval)
                 
                 if not df.empty:
-                    # Save to CSV file
+                    # 🛡️ FIXED: Use safe file saving with versioning
                     filename = f"{name}_history.csv"
-                    filepath = os.path.join(self.save_path, filename)
-                    df.to_csv(filepath)
+                    save_result = self.file_manager.save_dataframe(
+                        df=df,
+                        filename=filename,
+                        metadata={'symbol': symbol, 'index_name': name, 'fetch_interval': interval}
+                    )
                     
-                    results[name] = df
-                    logger.info(f"✅ Fetched {len(df)} rows for {name}")
+                    if save_result.success:
+                        results[name] = df
+                        logger.info(f"✅ Fetched {len(df)} rows for {name} -> {save_result.final_filename}")
+                        if save_result.strategy_used != SaveStrategy.OVERWRITE:
+                            logger.info(f"🛡️ File saved with strategy: {save_result.strategy_used.value}")
+                    else:
+                        logger.error(f"❌ Failed to save data for {name}: {save_result.error_message}")
                 else:
                     logger.warning(f"⚠️ No data fetched for {name}")
                     
@@ -103,12 +118,20 @@ class IndexDataManager:
             df = yf.download(symbol, start=start_date, end=end_date, interval=interval)
             
             if not df.empty:
-                # Save to CSV file
+                # 🛡️ FIXED: Use safe file saving with versioning
                 filename = f"{name}_history.csv"
-                filepath = os.path.join(self.save_path, filename)
-                df.to_csv(filepath)
-                logger.info(f"✅ Fetched {len(df)} rows for {name}")
-                return df
+                save_result = self.file_manager.save_dataframe(
+                    df=df,
+                    filename=filename,
+                    metadata={'symbol': symbol, 'index_name': name, 'fetch_interval': interval}
+                )
+                
+                if save_result.success:
+                    logger.info(f"✅ Fetched {len(df)} rows for {name} -> {save_result.final_filename}")
+                    return df
+                else:
+                    logger.error(f"❌ Failed to save data for {name}: {save_result.error_message}")
+                    return df  # Return data even if save failed
             else:
                 logger.warning(f"⚠️ No data fetched for {name}")
                 return pd.DataFrame()

@@ -21,6 +21,7 @@ from data_processing_utils import (
     ProcessingResult, DataQuality, ProcessingError, ValidationError,
     TechnicalIndicatorProcessor
 )
+from file_management_utils import SafeFileManager, SaveStrategy, FileFormat
 
 # Constants
 ISO_DATETIME_SUFFIX = ".000Z"
@@ -101,6 +102,12 @@ class EnhancedBreezeDataManager:
         self.api_call_count = 0
         self.rate_limit_delay = 0.1  # Minimum delay between API calls
         self.last_api_call = 0
+        
+        # Initialize safe file manager for enhanced file operations
+        self.file_manager = SafeFileManager(
+            base_path=self.save_path,
+            default_strategy=SaveStrategy.VERSION
+        )
         
     def _initialize_paths(self) -> str:
         """
@@ -531,58 +538,127 @@ class EnhancedBreezeDataManager:
             return datetime.now() - timedelta(days=days_back)
     
     def save_data_safe(self, data: pd.DataFrame, filename: str, 
-                      additional_metadata: Optional[Dict] = None) -> bool:
+                      additional_metadata: Optional[Dict] = None,
+                      strategy: SaveStrategy = None,
+                      file_format: FileFormat = FileFormat.CSV) -> ProcessingResult:
         """
-        Safely save data with comprehensive error handling and metadata.
+        🛡️ FIXED: Enhanced safe data saving with versioning and backup support.
+        
+        IMPROVEMENTS:
+        - Automatic file versioning to prevent overwrites
+        - Backup creation for existing files
+        - Comprehensive metadata tracking
+        - Multiple file format support
+        - File existence checks
         
         Args:
             data (pd.DataFrame): Data to save
             filename (str): Output filename
             additional_metadata (Optional[Dict]): Additional metadata to save
+            strategy (SaveStrategy): Strategy for handling existing files
+            file_format (FileFormat): File format to save in
             
         Returns:
-            bool: True if save successful
+            ProcessingResult: Comprehensive result with save operation details
         """
         try:
             if data.empty:
                 self.logger.warning(f"Data is empty, not saving {filename}")
-                return False
+                return ProcessingResult(
+                    data=pd.DataFrame(),
+                    success=False,
+                    quality=DataQuality.INVALID,
+                    processing_time=0.0,
+                    error_message="Data is empty"
+                )
             
-            # Prepare file path
-            file_path = os.path.join(self.save_path, filename)
+            # Use the safe file manager for enhanced saving
+            save_result = self.file_manager.save_dataframe(
+                df=data,
+                filename=filename,
+                strategy=strategy,
+                file_format=file_format,
+                metadata=additional_metadata
+            )
             
-            # Save data
-            data.to_csv(file_path, index=False)
-            
-            # Save metadata
-            # Extract datetime range if datetime column exists
-            date_range = None
-            if 'datetime' in data.columns:
-                min_date = data['datetime'].min()
-                max_date = data['datetime'].max()
-                date_range = {'min': min_date, 'max': max_date}
-            
-            metadata = {
-                'filename': filename,
-                'save_timestamp': datetime.now().isoformat(),
-                'data_shape': data.shape,
-                'columns': list(data.columns),
-                'date_range': date_range
-            }
-            
-            if additional_metadata:
-                metadata.update(additional_metadata)
-            
-            metadata_path = file_path.replace('.csv', '_metadata.json')
-            with open(metadata_path, 'w') as f:
-                json.dump(metadata, f, indent=2, default=str)
-            
-            self.logger.info(f"✅ Data saved: {file_path} ({data.shape[0]} rows, {data.shape[1]} cols)")
-            return True
+            if save_result.success:
+                self.logger.info(f"✅ Data saved safely: {save_result.final_filename} ({data.shape[0]} rows, {data.shape[1]} cols)")
+                if save_result.backup_created:
+                    self.logger.info(f"🔄 Backup created: {save_result.backup_path}")
+                if save_result.strategy_used != SaveStrategy.OVERWRITE:
+                    self.logger.info(f"🛡️ Strategy used: {save_result.strategy_used.value}")
+                
+                return ProcessingResult(
+                    data=data,
+                    success=True,
+                    quality=DataQuality.GOOD,
+                    processing_time=0.0,
+                    metadata={
+                        'save_result': save_result.__dict__,
+                        'additional_metadata': additional_metadata
+                    }
+                )
+            else:
+                return ProcessingResult(
+                    data=pd.DataFrame(),
+                    success=False,
+                    quality=DataQuality.INVALID,
+                    processing_time=0.0,
+                    error_message=save_result.error_message
+                )
             
         except Exception as e:
-            self.logger.error(f"Error saving data to {filename}: {e}")
-            return False
+            error_msg = f"Error in safe data saving: {str(e)}"
+            self.logger.error(error_msg)
+            return ProcessingResult(
+                data=pd.DataFrame(),
+                success=False,
+                quality=DataQuality.INVALID,
+                processing_time=0.0,
+                error_message=error_msg
+            )
+    
+    def save_data_with_backup(self, data: pd.DataFrame, filename: str, 
+                             additional_metadata: Optional[Dict] = None) -> ProcessingResult:
+        """
+        Save data with automatic backup of existing files.
+        
+        This is a convenience method that uses BACKUP_OVERWRITE strategy.
+        """
+        return self.save_data_safe(
+            data=data,
+            filename=filename,
+            additional_metadata=additional_metadata,
+            strategy=SaveStrategy.BACKUP_OVERWRITE
+        )
+    
+    def save_data_versioned(self, data: pd.DataFrame, filename: str,
+                           additional_metadata: Optional[Dict] = None) -> ProcessingResult:
+        """
+        Save data with automatic versioning (file_v1.csv, file_v2.csv, etc.).
+        
+        This is a convenience method that uses VERSION strategy.
+        """
+        return self.save_data_safe(
+            data=data,
+            filename=filename,
+            additional_metadata=additional_metadata,
+            strategy=SaveStrategy.VERSION
+        )
+    
+    def save_data_timestamped(self, data: pd.DataFrame, filename: str,
+                             additional_metadata: Optional[Dict] = None) -> ProcessingResult:
+        """
+        Save data with timestamp in filename.
+        
+        This is a convenience method that uses TIMESTAMP strategy.
+        """
+        return self.save_data_safe(
+            data=data,
+            filename=filename,
+            additional_metadata=additional_metadata,
+            strategy=SaveStrategy.TIMESTAMP
+        )
 
 class OptionChainAnalyzer:
     """Advanced option chain analysis with comprehensive error handling."""

@@ -27,6 +27,7 @@ except ImportError:
 PLOTTING_WARNING = "Plotting not available - matplotlib/seaborn not installed"
 
 from app_config import Config
+from file_management_utils import SafeFileManager, SaveStrategy, safe_save_dataframe, safe_save_model
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -369,11 +370,17 @@ class ModelEvaluator:
         plt.show()
 
 class ModelManager:
-    """Model saving and loading utilities."""
+    """🛡️ ENHANCED: Model saving and loading utilities with safe file management."""
     
     def __init__(self):
         self.config = Config()
         self.model_save_path = self._initialize_model_path()
+        
+        # Initialize safe file manager for model operations
+        self.file_manager = SafeFileManager(
+            base_path=self.model_save_path,
+            default_strategy=SaveStrategy.VERSION
+        )
     
     def _initialize_model_path(self) -> str:
         """
@@ -395,36 +402,71 @@ class ModelManager:
             logger.warning(f"Using fallback model path: {fallback_path}")
             return fallback_path
     
-    def save_model(self, model, model_name, metadata=None):
+    def save_model(self, model, model_name, metadata=None, strategy=SaveStrategy.VERSION):
         """
-        Save a trained model with metadata.
+        🛡️ FIXED: Save a trained model with enhanced file management and versioning.
+        
+        IMPROVEMENTS:
+        - Automatic versioning to prevent overwrites
+        - Backup creation for existing models
+        - Comprehensive metadata tracking
+        - File existence checks
         
         Args:
             model: Trained model object
             model_name (str): Name for the model
             metadata (dict): Additional metadata to save
+            strategy (SaveStrategy): Strategy for handling existing files
+            
+        Returns:
+            SaveResult: Comprehensive result with save operation details
         """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{model_name}_{timestamp}.pkl"
-        filepath = os.path.join(self.model_save_path, filename)
+        filename = f"{model_name}.pkl"
         
-        model_data = {
-            'model': model,
-            'metadata': metadata or {},
-            'timestamp': timestamp,
-            'model_name': model_name
-        }
+        # Use safe file manager for enhanced model saving
+        save_result = self.file_manager.save_model(
+            model=model,
+            filename=filename,
+            strategy=strategy,
+            metadata=metadata
+        )
         
-        try:
-            with open(filepath, 'wb') as f:
-                pickle.dump(model_data, f)
-            
-            logger.info(f"Model saved: {filepath}")
-            return filepath
-            
-        except Exception as e:
-            logger.error(f"Failed to save model: {e}")
-            return None
+        if save_result.success:
+            logger.info(f"✅ Model saved safely: {save_result.final_filename}")
+            if save_result.backup_created:
+                logger.info(f"🔄 Backup created: {save_result.backup_path}")
+            if save_result.strategy_used != SaveStrategy.OVERWRITE:
+                logger.info(f"🛡️ Strategy used: {save_result.strategy_used.value}")
+        else:
+            logger.error(f"❌ Model save failed: {save_result.error_message}")
+        
+        return save_result
+    
+    def save_model_with_backup(self, model, model_name, metadata=None):
+        """
+        Save model with automatic backup of existing file.
+        
+        This is a convenience method that uses BACKUP_OVERWRITE strategy.
+        """
+        return self.save_model(
+            model=model,
+            model_name=model_name,
+            metadata=metadata,
+            strategy=SaveStrategy.BACKUP_OVERWRITE
+        )
+    
+    def save_model_timestamped(self, model, model_name, metadata=None):
+        """
+        Save model with timestamp in filename.
+        
+        This is a convenience method that uses TIMESTAMP strategy.
+        """
+        return self.save_model(
+            model=model,
+            model_name=model_name,
+            metadata=metadata,
+            strategy=SaveStrategy.TIMESTAMP
+        )
     
     def load_model(self, filepath):
         """

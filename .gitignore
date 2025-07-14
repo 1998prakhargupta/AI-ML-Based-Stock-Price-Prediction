@@ -11,24 +11,76 @@ secrets.json
 *.csv
 *.parquet
 *.pkl
+*.json
+data/
+!config.json
 
 # Model files
 *.h5
 *.joblib
 *.pickle
+*.model
+*.pt
+*.pth
+models/
+
+# Log files
+*.log
+logs/
+breeze_api.log
+data_processing.log
+test_enhanced_setup.log
+
+# Test output and temporary files
+test_output_management/
+*_backup_*
+*_metadata.json
+test_data*.txt
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
 
-# Python cache
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+ENV/
 
 # IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS files
 .DS_Store
 Thumbs.db
+*.tmp
+*.temp
+
+# Documentation build files
+docs/_build/
+site/
+
+# Coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
