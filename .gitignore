@@ -1,86 +1,556 @@
-# Add local config files to gitignore
+# =============================================================================
+# 🎯 COMPREHENSIVE GITIGNORE FOR ML PRICE PREDICTION PROJECT
+# =============================================================================
+# This file excludes sensitive data, large files, generated files, and 
+# environment-specific files while preserving essential project structure.
+
+# =============================================================================
+# 🔐 CREDENTIALS AND SENSITIVE DATA
+# =============================================================================
+# Local configuration and environment files
 config.local.json
 .env
 *.env
+.env.*
+environment.yml
+.envrc
 
-# API credentials and sensitive data
+# API credentials and authentication
 credentials.json
 secrets.json
+auth.json
+tokens.json
+api_keys.json
+.credentials
+.secrets
+.auth
 
-# Data files
+# SSH keys and certificates
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# =============================================================================
+# 📊 DATA FILES AND DATASETS
+# =============================================================================
+# Raw and processed data files
 *.csv
+*.xlsx
+*.xls
+*.tsv
 *.parquet
-*.pkl
-*.json
-data/
-!config.json
-
-# Model files
+*.feather
+*.hdf5
 *.h5
+*.sqlite
+*.db
+*.sqlite3
+*.json
+*.jsonl
+*.ndjson
+*.pickle
+*.pkl
+*.npz
+*.npy
+*.dat
+*.txt
+
+# Data directories
+data/
+raw_data/
+processed_data/
+datasets/
+input/
+output/
+exports/
+downloads/
+
+# Keep essential config files
+!config.json
+!requirements.txt
+!README.md
+!*.py
+!*.ipynb
+!*.md
+!.gitignore
+!LICENSE
+!setup.py
+!setup.cfg
+!pyproject.toml
+
+# =============================================================================
+# 🤖 MACHINE LEARNING MODELS AND ARTIFACTS
+# =============================================================================
+# Model files and weights
+*.h5
+*.hdf5
 *.joblib
 *.pickle
+*.pkl
 *.model
 *.pt
 *.pth
-models/
+*.ckpt
+*.pb
+*.tflite
+*.onnx
+*.pmml
+*.sav
+*.dump
 
+# Model directories
+models/
+saved_models/
+checkpoints/
+weights/
+artifacts/
+model_cache/
+trained_models/
+experiments/
+
+# MLflow and experiment tracking
+mlruns/
+.mlflow/
+mlflow.db
+mlflow_tracking/
+
+# TensorBoard logs
+tensorboard_logs/
+tb_logs/
+runs/
+
+# =============================================================================
+# 📝 LOGS AND MONITORING
+# =============================================================================
 # Log files
 *.log
+*.out
+*.err
 logs/
+log/
+*.log.*
+
+# Specific log files for this project
 breeze_api.log
 data_processing.log
 test_enhanced_setup.log
+websocketLogs*.log
+apiLogs*.log
 
+# Monitoring and profiling
+profile_*.prof
+*.prof
+.profiling/
+
+# =============================================================================
+# 🧪 TESTING AND DEVELOPMENT
+# =============================================================================
 # Test output and temporary files
 test_output_management/
+test_results/
+test_data/
+temp_test/
 *_backup_*
 *_metadata.json
 test_data*.txt
+test_*.json
+*_test_results_*.json
+notebook_test_results_*.json
 
-# Jupyter notebook checkpoints
+# Coverage and testing
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.cache/
+
+# Benchmark results
+benchmarks/
+.benchmarks/
+
+# =============================================================================
+# 📓 JUPYTER AND NOTEBOOKS
+# =============================================================================
+# Jupyter notebook checkpoints and metadata
 .ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*.ipynb_checkpoints
+.jupyter/
+.local/share/jupyter/
 
+# Jupyter lab workspace
+.jupyter-workspace
+
+# =============================================================================
+# 🐍 PYTHON ENVIRONMENT AND CACHE
+# =============================================================================
 # Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pyw
+*.pyz
+*.pywz
 *.so
 *.egg
 *.egg-info/
+.eggs/
 build/
 dist/
+develop-eggs/
+.installed.cfg
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.Python
 
-# Virtual environments
+# Python build and distribution
+setup.cfg
+MANIFEST.in
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =============================================================================
+# 🏠 VIRTUAL ENVIRONMENTS
+# =============================================================================
+# Virtual environment directories
 .venv/
 venv/
 env/
 .env/
 ENV/
+env.bak/
+venv.bak/
+.virtualenv/
+virtualenv/
+.conda/
+conda-meta/
 
-# IDE files
+# Conda environments
+environment.lock
+conda-lock.yml
+.condarc
+
+# Poetry
+poetry.lock
+.venv
+
+# Pipenv
+Pipfile.lock
+.venv
+
+# =============================================================================
+# 🛠️ DEVELOPMENT TOOLS AND IDEs
+# =============================================================================
+# VSCode
 .vscode/
+*.code-workspace
+
+# PyCharm
 .idea/
+*.iws
+*.iml
+*.ipr
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Vim/Neovim
 *.swp
 *.swo
 *~
+.netrwhist
+tags
+.tags
 
-# OS files
+# Emacs
+*~
+\#*\#
+.\#*
+.dir-locals.el
+TAGS
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Atom
+.atom/
+
+# =============================================================================
+# 💻 OPERATING SYSTEMS
+# =============================================================================
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
 Thumbs.db
-*.tmp
-*.temp
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Documentation build files
-docs/_build/
-site/
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# Coverage reports
-.coverage
-htmlcov/
-.pytest_cache/
+# =============================================================================
+# 📦 PACKAGE MANAGERS AND BUILD TOOLS
+# =============================================================================
+# npm and Node.js (if used for visualization)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
 
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# setuptools
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+
+# =============================================================================
+# 🔍 CODE ANALYSIS AND LINTING
+# =============================================================================
 # MyPy
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Pylint
+pylint.log
+
+# flake8
+.flake8
+
+# Black formatter
+.black
+
+# isort
+.isort.cfg
+
+# SonarQube
+.sonar/
+.scannerwork/
+
+# =============================================================================
+# 📚 DOCUMENTATION
+# =============================================================================
+# Sphinx documentation
+docs/_build/
+docs/build/
+docs/source/_static/
+docs/source/_templates/
+site/
+
+# MkDocs
+site/
+.mkdocs.yml.swp
+
+# Doxygen
+html/
+latex/
+
+# =============================================================================
+# ☁️ CLOUD AND DEPLOYMENT
+# =============================================================================
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Kubernetes
+*.yaml.backup
+*.yml.backup
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+
+# AWS
+.aws/
+
+# Google Cloud
+.gcp/
+key.json
+service-account.json
+
+# =============================================================================
+# 🎯 PROJECT-SPECIFIC PATTERNS
+# =============================================================================
+# Output files and reports
+plots/
+reports/
+figures/
+images/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+*.orig
+*.rej
+.*.swp
+.*.swo
+
+# Configuration backups
+*.conf.bak
+*.cfg.bak
+*.ini.bak
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+database.db
+
+# Cache directories
+.cache/
+cache/
+.tmp/
+tmp/
+
+# =============================================================================
+# 🚀 PERFORMANCE AND PROFILING
+# =============================================================================
+# Profiling outputs
+*.prof
+*.profile
+.profiling/
+profile_output/
+
+# Memory profiling
+*.mprof
+.memory_profiler/
+
+# Line profiling
+*.lprof
+
+# =============================================================================
+# 🔧 MISCELLANEOUS
+# =============================================================================
+# Compiled libraries
+*.dll
+*.dylib
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Archives
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tbz2
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented libs generated by jscoverage/JSCover
+lib-cov
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity

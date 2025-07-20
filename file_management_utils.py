@@ -319,6 +319,52 @@ class SafeFileManager:
         except Exception as e:
             self.logger.warning(f"Failed to save metadata for {filename}: {e}")
     
+    def _save_figure_metadata(self, filename: str, metadata: Dict = None, 
+                             strategy: SaveStrategy = None):
+        """Save metadata about the saved figure."""
+        try:
+            meta_info = {
+                'filename': filename,
+                'timestamp': datetime.now().isoformat(),
+                'file_type': 'figure',
+                'strategy_used': strategy.value if strategy else None
+            }
+            
+            # Add custom metadata
+            if metadata:
+                meta_info['custom_metadata'] = metadata
+            
+            # Save metadata file
+            metadata_file = self.metadata_dir / f"{Path(filename).stem}_metadata.json"
+            with open(metadata_file, 'w') as f:
+                json.dump(meta_info, f, indent=2, default=str)
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to save figure metadata for {filename}: {e}")
+    
+    def _save_file_metadata(self, filename: str, metadata: Dict = None, 
+                           strategy: SaveStrategy = None):
+        """Save metadata about the saved file."""
+        try:
+            meta_info = {
+                'filename': filename,
+                'timestamp': datetime.now().isoformat(),
+                'file_type': 'generic',
+                'strategy_used': strategy.value if strategy else None
+            }
+            
+            # Add custom metadata
+            if metadata:
+                meta_info['custom_metadata'] = metadata
+            
+            # Save metadata file
+            metadata_file = self.metadata_dir / f"{Path(filename).stem}_metadata.json"
+            with open(metadata_file, 'w') as f:
+                json.dump(meta_info, f, indent=2, default=str)
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to save file metadata for {filename}: {e}")
+    
     def save_model(self, model, filename: str, 
                    strategy: SaveStrategy = None,
                    metadata: Dict = None) -> SaveResult:
@@ -395,6 +441,184 @@ class SafeFileManager:
             
         except Exception as e:
             error_msg = f"Failed to save model: {str(e)}"
+            self.logger.error(error_msg)
+            
+            return SaveResult(
+                success=False,
+                filepath="",
+                original_filename=filename,
+                final_filename="",
+                strategy_used=strategy,
+                error_message=error_msg
+            )
+    
+    def save_figure(self, figure, filename: str, 
+                   strategy: SaveStrategy = None,
+                   metadata: Dict = None,
+                   **kwargs) -> SaveResult:
+        """
+        Safely save a matplotlib figure with versioning.
+        
+        Args:
+            figure: Matplotlib figure object to save
+            filename: Desired filename
+            strategy: Strategy for handling existing files
+            metadata: Additional metadata to store
+            **kwargs: Additional arguments for figure.savefig()
+            
+        Returns:
+            SaveResult object with operation details
+        """
+        if strategy is None:
+            strategy = self.default_strategy
+            
+        # Ensure proper image extension
+        valid_extensions = ['.png', '.pdf', '.svg', '.jpg', '.jpeg']
+        if not any(filename.endswith(ext) for ext in valid_extensions):
+            filename = f"{Path(filename).stem}.png"
+        
+        try:
+            # Generate safe filename
+            safe_filename, file_exists = self.generate_safe_filename(filename, strategy)
+            final_filepath = self.base_path / safe_filename
+            
+            # Handle skip strategy
+            if strategy == SaveStrategy.SKIP and file_exists:
+                return SaveResult(
+                    success=True,
+                    filepath=str(final_filepath),
+                    original_filename=filename,
+                    final_filename=safe_filename,
+                    strategy_used=strategy,
+                    error_message="File exists, skipping save"
+                )
+            
+            # Create backup if needed
+            backup_path = None
+            backup_created = False
+            
+            if strategy == SaveStrategy.BACKUP_OVERWRITE and file_exists:
+                backup_path = str(self._create_backup(final_filepath))
+                backup_created = True
+                self.logger.info(f"Created backup: {backup_path}")
+            
+            # Set default save parameters for figures
+            save_params = {
+                'dpi': kwargs.get('dpi', 300),
+                'bbox_inches': kwargs.get('bbox_inches', 'tight'),
+                'facecolor': kwargs.get('facecolor', 'white'),
+                'edgecolor': kwargs.get('edgecolor', 'none')
+            }
+            save_params.update(kwargs)
+            
+            # Save the figure
+            figure.savefig(final_filepath, **save_params)
+            self.logger.info(f"Figure saved successfully: {safe_filename}")
+            
+            # Save metadata
+            if metadata:
+                self._save_figure_metadata(safe_filename, metadata, strategy)
+            
+            result = SaveResult(
+                success=True,
+                filepath=str(final_filepath),
+                original_filename=filename,
+                final_filename=safe_filename,
+                strategy_used=strategy,
+                backup_created=backup_created,
+                backup_path=backup_path,
+                metadata=metadata
+            )
+            
+            return result
+            
+        except Exception as e:
+            error_msg = f"Failed to save figure: {str(e)}"
+            self.logger.error(error_msg)
+            
+            return SaveResult(
+                success=False,
+                filepath="",
+                original_filename=filename,
+                final_filename="",
+                strategy_used=strategy,
+                error_message=error_msg
+            )
+    
+    def save_file(self, content: Union[str, bytes], filename: str,
+                 strategy: SaveStrategy = None,
+                 metadata: Dict = None,
+                 encoding: str = 'utf-8') -> SaveResult:
+        """
+        Safely save text or binary content to a file.
+        
+        Args:
+            content: Content to save (string or bytes)
+            filename: Desired filename
+            strategy: Strategy for handling existing files
+            metadata: Additional metadata to store
+            encoding: Text encoding (only used for string content)
+            
+        Returns:
+            SaveResult object with operation details
+        """
+        if strategy is None:
+            strategy = self.default_strategy
+        
+        try:
+            # Generate safe filename
+            safe_filename, file_exists = self.generate_safe_filename(filename, strategy)
+            final_filepath = self.base_path / safe_filename
+            
+            # Handle skip strategy
+            if strategy == SaveStrategy.SKIP and file_exists:
+                return SaveResult(
+                    success=True,
+                    filepath=str(final_filepath),
+                    original_filename=filename,
+                    final_filename=safe_filename,
+                    strategy_used=strategy,
+                    error_message="File exists, skipping save"
+                )
+            
+            # Create backup if needed
+            backup_path = None
+            backup_created = False
+            
+            if strategy == SaveStrategy.BACKUP_OVERWRITE and file_exists:
+                backup_path = str(self._create_backup(final_filepath))
+                backup_created = True
+                self.logger.info(f"Created backup: {backup_path}")
+            
+            # Save content
+            if isinstance(content, str):
+                with open(final_filepath, 'w', encoding=encoding) as f:
+                    f.write(content)
+            else:
+                with open(final_filepath, 'wb') as f:
+                    f.write(content)
+            
+            self.logger.info(f"File saved successfully: {safe_filename}")
+            
+            # Save metadata
+            if metadata:
+                self._save_file_metadata(safe_filename, metadata, strategy)
+            
+            result = SaveResult(
+                success=True,
+                filepath=str(final_filepath),
+                original_filename=filename,
+                final_filename=safe_filename,
+                strategy_used=strategy,
+                backup_created=backup_created,
+                backup_path=backup_path,
+                metadata=metadata
+            )
+            
+            return result
+            
+        except Exception as e:
+            error_msg = f"Failed to save file: {str(e)}"
             self.logger.error(error_msg)
             
             return SaveResult(
