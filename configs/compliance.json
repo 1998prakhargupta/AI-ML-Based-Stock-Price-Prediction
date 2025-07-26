@@ -1,0 +1,67 @@
+{
+  "api_compliance": {
+    "enabled": true,
+    "enforcement_level": "moderate",
+    "providers": {
+      "breeze_connect": {
+        "enabled": true,
+        "rate_limits": {
+          "requests_per_second": 2.0,
+          "requests_per_minute": 60,
+          "requests_per_hour": 1000,
+          "burst_allowance": 10,
+          "min_request_interval": 0.5
+        },
+        "terms": {
+          "commercial_use_allowed": true,
+          "attribution_required": false,
+          "data_redistribution_prohibited": true,
+          "rate_limiting_mandatory": true
+        }
+      },
+      "yahoo_finance": {
+        "enabled": true,
+        "rate_limits": {
+          "requests_per_second": 1.0,
+          "requests_per_minute": 30,
+          "requests_per_hour": 500,
+          "burst_allowance": 5,
+          "min_request_interval": 1.0
+        },
+        "terms": {
+          "commercial_use_allowed": false,
+          "personal_use_only": true,
+          "attribution_required": true,
+          "data_redistribution_prohibited": true,
+          "rate_limiting_mandatory": true
+        }
+      }
+    }
+  },
+  "data_governance": {
+    "retention_policy": {
+      "raw_data_retention_days": 30,
+      "processed_data_retention_days": 90,
+      "cache_retention_hours": 24,
+      "logs_retention_days": 30
+    },
+    "quality_checks": {
+      "enabled": true,
+      "validation_rules": [
+        "check_data_completeness",
+        "validate_data_types",
+        "check_outliers",
+        "validate_date_ranges"
+      ]
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics_collection": true,
+    "alert_thresholds": {
+      "api_error_rate": 0.1,
+      "response_time_ms": 5000,
+      "compliance_score": 0.9
+    }
+  }
+}

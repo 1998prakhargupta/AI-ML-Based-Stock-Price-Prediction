@@ -40,7 +40,21 @@ id_ed25519*
 # =============================================================================
 # 📊 DATA FILES AND DATASETS
 # =============================================================================
-# Raw and processed data files
+# Raw and processed data files (but keep structure)
+data/raw/*
+data/processed/*
+data/cache/*
+data/outputs/*
+data/plots/*
+data/reports/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/cache/.gitkeep
+!data/outputs/.gitkeep
+!data/plots/.gitkeep
+!data/reports/.gitkeep
+
+# Data file patterns
 *.csv
 *.xlsx
 *.xls
@@ -52,18 +66,30 @@ id_ed25519*
 *.sqlite
 *.db
 *.sqlite3
-*.json
-*.jsonl
-*.ndjson
 *.pickle
 *.pkl
 *.npz
 *.npy
 *.dat
-*.txt
 
-# Data directories
-data/
+# Exclude JSON data files but keep config
+*.json
+!configs/*.json
+!*config*.json
+!package*.json
+!requirements*.json
+!.vscode/*.json
+
+# Text data files
+*.txt
+!requirements*.txt
+!README*.txt
+
+# Other data formats
+*.jsonl
+*.ndjson
+
+# External data directories
 raw_data/
 processed_data/
 datasets/
@@ -72,28 +98,33 @@ output/
 exports/
 downloads/
 
-# Keep essential config files
-!config.json
-!requirements.txt
-!README.md
-!*.py
-!*.ipynb
-!*.md
+# Keep essential config and structure files
+!.gitkeep
 !.gitignore
-!LICENSE
+!LICENSE*
+!README*
 !setup.py
 !setup.cfg
 !pyproject.toml
+!Makefile
+!pytest.ini
+!.env.example
 
 # =============================================================================
 # 🤖 MACHINE LEARNING MODELS AND ARTIFACTS
 # =============================================================================
-# Model files and weights
+# Model files and weights (but keep structure)
+models/checkpoints/*
+models/experiments/*
+models/production/*
+!models/checkpoints/.gitkeep
+!models/experiments/.gitkeep
+!models/production/.gitkeep
+
+# Model file patterns
 *.h5
 *.hdf5
 *.joblib
-*.pickle
-*.pkl
 *.model
 *.pt
 *.pth
@@ -105,15 +136,12 @@ downloads/
 *.sav
 *.dump
 
-# Model directories
-models/
+# External model directories
 saved_models/
-checkpoints/
 weights/
 artifacts/
 model_cache/
 trained_models/
-experiments/
 
 # MLflow and experiment tracking
 mlruns/
@@ -129,12 +157,14 @@ runs/
 # =============================================================================
 # 📝 LOGS AND MONITORING
 # =============================================================================
-# Log files
+# Log files (but keep logs directory structure)
+logs/*
+!logs/.gitkeep
+
+# Log file patterns
 *.log
 *.out
 *.err
-logs/
-log/
 *.log.*
 
 # Specific log files for this project
@@ -144,6 +174,9 @@ test_enhanced_setup.log
 websocketLogs*.log
 apiLogs*.log
 
+# External log directories
+log/
+
 # Monitoring and profiling
 profile_*.prof
 *.prof
@@ -152,7 +185,15 @@ profile_*.prof
 # =============================================================================
 # 🧪 TESTING AND DEVELOPMENT
 # =============================================================================
-# Test output and temporary files
+# Test output and temporary files (but keep tests structure)
+tests/output/
+tests/temp/
+tests/*/output/
+tests/*/temp/
+!tests/.gitkeep
+!tests/*/.gitkeep
+
+# Test data and results
 test_output_management/
 test_results/
 test_data/
@@ -183,6 +224,12 @@ benchmarks/
 # =============================================================================
 # 📓 JUPYTER AND NOTEBOOKS
 # =============================================================================
+# Keep notebooks directory structure but exclude outputs
+notebooks/*/outputs/
+notebooks/*/*/outputs/
+!notebooks/.gitkeep
+!notebooks/*/.gitkeep
+
 # Jupyter notebook checkpoints and metadata
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
@@ -192,6 +239,10 @@ benchmarks/
 
 # Jupyter lab workspace
 .jupyter-workspace
+
+# Notebook output files
+*_files/
+*-checkpoint.ipynb
 
 # =============================================================================
 # 🐍 PYTHON ENVIRONMENT AND CACHE
@@ -429,17 +480,18 @@ service-account.json
 # =============================================================================
 # 🎯 PROJECT-SPECIFIC PATTERNS
 # =============================================================================
-# Output files and reports
-plots/
-reports/
-figures/
-images/
+# Output files and reports (but keep structure)
 *.png
 *.jpg
 *.jpeg
 *.gif
 *.svg
 *.pdf
+
+# Generated documentation (keep source)
+docs/_build/
+docs/build/
+!docs/.gitkeep
 
 # Temporary and backup files
 *.tmp
@@ -458,16 +510,24 @@ images/
 *.ini.bak
 
 # Database files
-*.sqlite
-*.sqlite3
-*.db
 database.db
 
-# Cache directories
+# Cache directories (but keep structure)
 .cache/
 cache/
 .tmp/
 tmp/
+
+# File metadata directories
+.file_metadata/
+*/.file_metadata/
+
+# Symbolic link targets (keep the links themselves)
+# (Files referenced by symbolic links are already excluded above)
+
+# API response cache files
+api_response_cache.*
+*_cache.*
 
 # =============================================================================
 # 🚀 PERFORMANCE AND PROFILING
@@ -554,3 +614,46 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# =============================================================================
+# 🗂️ ORGANIZED PROJECT STRUCTURE SPECIFIC
+# =============================================================================
+# Source code cache and compiled files
+src/**/__pycache__/
+src/**/*.pyc
+src/**/*.pyo
+src/**/*.pyd
+
+# Import migration backup files
+*.py.bak
+*.py.backup
+*_backup.py
+
+# Symbolic link validation
+import_validation_*.log
+migration_*.log
+
+# Configuration backups
+src/__init__.py.bak
+**/__init__.py.bak
+
+# Development and debugging
+debug_*.py
+test_import.py
+temp_*.py
+
+# File management metadata (specific to organized structure)
+data/**/.file_metadata/
+models/**/.file_metadata/
+
+# Experiment tracking
+experiments/
+experiment_*/
+mlruns/
+wandb/
+
+# Reproducibility artifacts
+reproducibility_state_*.json
+seed_*.json
+environment_*.yml
+

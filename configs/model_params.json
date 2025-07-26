@@ -1,0 +1,63 @@
+{
+  "model_parameters": {
+    "default_model": "RandomForestRegressor",
+    "training": {
+      "test_size": 0.2,
+      "random_state": 42,
+      "cross_validation_folds": 5,
+      "feature_selection": true,
+      "hyperparameter_tuning": true
+    },
+    "models": {
+      "RandomForestRegressor": {
+        "n_estimators": 100,
+        "max_depth": 10,
+        "min_samples_split": 5,
+        "min_samples_leaf": 2,
+        "random_state": 42
+      },
+      "GradientBoostingRegressor": {
+        "n_estimators": 100,
+        "learning_rate": 0.1,
+        "max_depth": 6,
+        "min_samples_split": 5,
+        "random_state": 42
+      },
+      "LinearRegression": {
+        "fit_intercept": true,
+        "normalize": false
+      },
+      "LSTM": {
+        "sequence_length": 60,
+        "hidden_units": 50,
+        "dropout_rate": 0.2,
+        "epochs": 100,
+        "batch_size": 32
+      }
+    }
+  },
+  "feature_engineering": {
+    "technical_indicators": [
+      "SMA_5",
+      "SMA_10", 
+      "SMA_20",
+      "EMA_12",
+      "EMA_26",
+      "RSI_14",
+      "MACD",
+      "Bollinger_Bands",
+      "Volume_SMA"
+    ],
+    "lag_features": [1, 2, 3, 5, 10],
+    "rolling_statistics": {
+      "windows": [5, 10, 20],
+      "features": ["mean", "std", "min", "max"]
+    }
+  },
+  "data_preprocessing": {
+    "normalization": "MinMaxScaler",
+    "handle_missing_values": "forward_fill",
+    "outlier_detection": "IQR",
+    "feature_scaling": true
+  }
+}
