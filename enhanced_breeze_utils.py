@@ -1,6 +1,9 @@
 """
-Enhanced Breeze API utilities with comprehensive error handling, logging, and modular design.
-This module provides robust data fetching, processing, and management capabilities.
+Enhanced Breeze API utilities with comprehensive error handling, logging, modular design,
+and API compliance monitoring.
+
+This module provides robust data fetching, processing, and management capabilities
+with strict adherence to API terms of service and rate limiting.
 """
 
 import logging
@@ -23,6 +26,13 @@ from data_processing_utils import (
 )
 from file_management_utils import SafeFileManager, SaveStrategy, FileFormat
 
+# Import compliance management
+try:
+    from api_compliance import compliance_decorator, DataProvider, ComplianceLevel
+    COMPLIANCE_AVAILABLE = True
+except ImportError:
+    COMPLIANCE_AVAILABLE = False
+
 # Constants
 ISO_DATETIME_SUFFIX = ".000Z"
 
@@ -36,6 +46,10 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Log compliance status
+if not COMPLIANCE_AVAILABLE:
+    logger.warning("⚠️ API compliance module not available - running without compliance monitoring")
 
 class APIError(Exception):
     """Custom exception for API-related errors."""
@@ -131,13 +145,24 @@ class EnhancedBreezeDataManager:
     
     def authenticate(self) -> bool:
         """
-        Authenticate with Breeze API with comprehensive error handling.
+        Authenticate with Breeze API with comprehensive error handling and compliance monitoring.
         
         Returns:
             bool: True if authentication successful, False otherwise
         """
-        self.logger.info("Attempting Breeze API authentication")
+        self.logger.info("Attempting Breeze API authentication with compliance monitoring")
         
+        # Apply compliance decorator if available
+        if COMPLIANCE_AVAILABLE:
+            @compliance_decorator(DataProvider.BREEZE_CONNECT, "authenticate")
+            def _authenticate_with_compliance():
+                return self._do_authenticate()
+            return _authenticate_with_compliance()
+        else:
+            return self._do_authenticate()
+    
+    def _do_authenticate(self) -> bool:
+        """Internal authentication implementation"""
         try:
             # Get credentials securely
             creds = self.config.get_breeze_credentials()
@@ -306,7 +331,7 @@ class EnhancedBreezeDataManager:
     
     def get_quotes_safe(self, stock_code: str, exchange_code: str) -> APIResponse:
         """
-        Safely get stock quotes with comprehensive error handling.
+        Safely get stock quotes with comprehensive error handling and compliance monitoring.
         
         Args:
             stock_code (str): Stock symbol
@@ -317,6 +342,17 @@ class EnhancedBreezeDataManager:
         """
         self.logger.info(f"Fetching quotes for {stock_code} on {exchange_code}")
         
+        # Apply compliance decorator if available
+        if COMPLIANCE_AVAILABLE:
+            @compliance_decorator(DataProvider.BREEZE_CONNECT, "get_quotes")
+            def _get_quotes_with_compliance():
+                return self._do_get_quotes(stock_code, exchange_code)
+            return _get_quotes_with_compliance()
+        else:
+            return self._do_get_quotes(stock_code, exchange_code)
+    
+    def _do_get_quotes(self, stock_code: str, exchange_code: str) -> APIResponse:
+        """Internal get quotes implementation"""
         try:
             # Validate inputs
             if not stock_code or not exchange_code:
@@ -349,7 +385,7 @@ class EnhancedBreezeDataManager:
     
     def get_historical_data_safe(self, request: MarketDataRequest) -> APIResponse:
         """
-        Safely fetch historical data with comprehensive validation and error handling.
+        Safely fetch historical data with comprehensive validation, error handling, and compliance monitoring.
         
         Args:
             request (MarketDataRequest): Data request parameters
@@ -359,6 +395,17 @@ class EnhancedBreezeDataManager:
         """
         self.logger.info(f"Fetching {request.product_type} data for {request.stock_code}")
         
+        # Apply compliance decorator if available
+        if COMPLIANCE_AVAILABLE:
+            @compliance_decorator(DataProvider.BREEZE_CONNECT, "get_historical_data")
+            def _get_historical_data_with_compliance():
+                return self._do_get_historical_data(request)
+            return _get_historical_data_with_compliance()
+        else:
+            return self._do_get_historical_data(request)
+    
+    def _do_get_historical_data(self, request: MarketDataRequest) -> APIResponse:
+        """Internal historical data implementation"""
         try:
             # Validate request
             self._validate_data_request(request)
