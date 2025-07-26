@@ -9,6 +9,7 @@ across different brokers, instruments, and market conditions.
 Key Components:
 - Data models for transaction requests and cost breakdowns
 - Abstract base class for cost calculators
+- Market impact and slippage modeling
 - Custom exception hierarchy for error handling
 - Constants and configuration utilities
 """
@@ -41,6 +42,33 @@ try:
 except ImportError:
     # May not be available during initial setup
     CostCalculatorBase = None
+
+# Market Impact Models
+try:
+    from .market_impact import (
+        BaseImpactModel,
+        LinearImpactModel,
+        SquareRootImpactModel,
+        AdaptiveImpactModel,
+        MarketConditionAnalyzer,
+        ImpactCalibrator
+    )
+except ImportError:
+    # Market impact models may not be available during initial setup
+    pass
+
+# Slippage Models
+try:
+    from .slippage import (
+        BaseSlippageModel,
+        DelaySlippageModel,
+        SizeSlippageModel,
+        ConditionSlippageModel,
+        SlippageEstimator
+    )
+except ImportError:
+    # Slippage models may not be available during initial setup
+    pass
 
 try:
     from .constants import (
@@ -76,4 +104,19 @@ __all__ = [
     
     # Base classes
     'CostCalculatorBase',
+    
+    # Market Impact Models
+    'BaseImpactModel',
+    'LinearImpactModel',
+    'SquareRootImpactModel',
+    'AdaptiveImpactModel',
+    'MarketConditionAnalyzer',
+    'ImpactCalibrator',
+    
+    # Slippage Models
+    'BaseSlippageModel',
+    'DelaySlippageModel',
+    'SizeSlippageModel',
+    'ConditionSlippageModel',
+    'SlippageEstimator'
 ]
