@@ -529,6 +529,23 @@ tmp/
 api_response_cache.*
 *_cache.*
 
+# Transaction cost modeling specific files
+transaction_cost_cache.*
+cost_calculation_cache.*
+broker_fee_cache.*
+market_impact_cache.*
+spread_estimation_cache.*
+
+# Broker API credentials and sensitive data
+broker_credentials.*
+*_api_keys.*
+*_auth_tokens.*
+
+# Cost calculation temporary files
+cost_calc_temp.*
+temp_cost_*.json
+*_cost_debug.*
+
 # =============================================================================
 # 🚀 PERFORMANCE AND PROFILING
 # =============================================================================
