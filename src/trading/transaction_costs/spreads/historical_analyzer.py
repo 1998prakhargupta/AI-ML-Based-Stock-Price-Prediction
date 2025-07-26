@@ -584,6 +584,10 @@ class HistoricalSpreadAnalyzer(BaseSpreadModel):
                 return 0.0
             
             correlation = numerator / denominator
+            # Handle complex correlation (shouldn't happen with real data)
+            if isinstance(correlation, complex):
+                correlation = correlation.real
+            
             return max(-1.0, min(1.0, correlation))  # Clamp to [-1, 1]
             
         except (ZeroDivisionError, ValueError):
