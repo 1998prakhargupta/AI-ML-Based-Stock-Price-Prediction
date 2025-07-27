@@ -1,0 +1,106 @@
+{
+  "version": "1.0.0",
+  "description": "Default cost configuration for transaction cost modeling",
+  "last_updated": "2025-01-27T07:21:00Z",
+  
+  "brokers": {},
+  
+  "market_data": {
+    "default_provider": "yahoo",
+    "fallback_providers": ["alpha_vantage", "iex"],
+    "cache_duration_seconds": 300,
+    "staleness_threshold_seconds": 60,
+    "retry_attempts": 3,
+    "timeout_seconds": 30,
+    "rate_limiting": {
+      "requests_per_minute": 100,
+      "requests_per_hour": 1000,
+      "burst_allowance": 10
+    }
+  },
+  
+  "calculation": {
+    "default_mode": "real_time",
+    "precision_decimal_places": 4,
+    "confidence_threshold": 0.8,
+    "enable_caching": true,
+    "cache_duration_seconds": 300,
+    "parallel_calculations": true,
+    "max_workers": 4,
+    "batch_size": 100
+  },
+  
+  "regulatory": {
+    "update_frequency_days": 30,
+    "auto_update_enabled": true,
+    "sec_fee_rate": "0.0000051",
+    "finra_taf_sell_rate": "0.000166",
+    "finra_taf_max": "8.50",
+    "apply_sec_fees": true,
+    "apply_finra_fees": true
+  },
+  
+  "performance": {
+    "enable_metrics": true,
+    "log_slow_calculations": true,
+    "slow_calculation_threshold_seconds": 5.0,
+    "enable_profiling": false,
+    "memory_monitoring": {
+      "enable_memory_tracking": true,
+      "memory_limit_mb": 512
+    }
+  },
+  
+  "error_handling": {
+    "max_retries": 3,
+    "retry_delay_seconds": 1,
+    "exponential_backoff": true,
+    "fail_fast": false,
+    "log_all_errors": true,
+    "circuit_breaker": {
+      "enable_circuit_breaker": true,
+      "failure_threshold": 5,
+      "recovery_timeout_seconds": 60
+    }
+  },
+  
+  "integration": {
+    "enable_external_apis": true,
+    "api_rate_limits": {
+      "requests_per_minute": 60,
+      "requests_per_hour": 1000
+    },
+    "data_validation": {
+      "strict_mode": true,
+      "allow_estimated_data": true,
+      "validate_input_data": true
+    },
+    "security": {
+      "encrypt_api_keys": true,
+      "validate_ssl_certificates": true
+    }
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "enable_file_logging": true,
+    "log_file_path": "logs/transaction_costs.log",
+    "logger_levels": {
+      "src.trading.cost_config": "INFO",
+      "src.trading.transaction_costs": "INFO"
+    }
+  },
+  
+  "cache": {
+    "enable_caching": true,
+    "cache_type": "memory",
+    "default_ttl_seconds": 300,
+    "max_cache_size_mb": 100
+  },
+  
+  "validation": {
+    "enable_input_validation": true,
+    "enable_output_validation": true,
+    "strict_validation": true
+  }
+}
