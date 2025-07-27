@@ -1,0 +1,227 @@
+# API Configuration for Stock Price Predictor
+# Comprehensive API settings for all data sources
+
+api:
+  # ===============================
+  # Global API Settings
+  # ===============================
+  global:
+    timeout: 30
+    max_retries: 3
+    retry_delay: 1.0
+    rate_limit_buffer: 0.1
+    user_agent: "Stock-Price-Predictor/1.0"
+    enable_caching: true
+    cache_ttl: 300  # 5 minutes
+    
+  # ===============================
+  # Breeze Connect (ICICI Direct)
+  # ===============================
+  breeze:
+    base_url: "https://api.icicidirect.com"
+    session_timeout: 28800  # 8 hours
+    rate_limits:
+      quotes: 100  # requests per minute
+      orders: 50   # requests per minute
+      portfolio: 30 # requests per minute
+    
+    endpoints:
+      login: "/api/v1/auth/login"
+      quotes: "/api/v1/quotes"
+      historical: "/api/v1/historical"
+      portfolio: "/api/v1/portfolio"
+      orders: "/api/v1/orders"
+      market_data: "/api/v1/market-data"
+    
+    features:
+      real_time_quotes: true
+      historical_data: true
+      portfolio_management: true
+      order_placement: true
+      market_depth: true
+    
+    data_formats:
+      - "json"
+      - "csv"
+    
+    supported_exchanges:
+      - "NSE"
+      - "BSE"
+      - "MCX"
+      - "NCDEX"
+    
+  # ===============================
+  # Kite Connect (Zerodha)
+  # ===============================
+  kite:
+    base_url: "https://api.kite.trade"
+    session_timeout: 28800  # 8 hours
+    rate_limits:
+      quotes: 100  # requests per minute
+      orders: 50   # requests per minute
+      historical: 30 # requests per minute
+    
+    endpoints:
+      login: "/session/token"
+      quotes: "/quote"
+      historical: "/instruments/historical"
+      portfolio: "/portfolio/holdings"
+      orders: "/orders"
+      margins: "/user/margins"
+    
+    features:
+      real_time_quotes: true
+      historical_data: true
+      portfolio_management: true
+      order_placement: true
+      margin_calculator: true
+    
+    data_formats:
+      - "json"
+    
+    supported_exchanges:
+      - "NSE"
+      - "BSE"
+      - "MCX"
+      - "NCDEX"
+      - "CDS"
+    
+  # ===============================
+  # Yahoo Finance
+  # ===============================
+  yahoo_finance:
+    base_url: "https://query1.finance.yahoo.com"
+    rate_limits:
+      quotes: 2000  # requests per hour
+      historical: 2000 # requests per hour
+    
+    endpoints:
+      quotes: "/v8/finance/chart"
+      historical: "/v8/finance/chart"
+      fundamentals: "/v10/finance/quoteSummary"
+      news: "/v1/finance/search"
+    
+    features:
+      real_time_quotes: true
+      historical_data: true
+      fundamental_data: true
+      news_sentiment: true
+      currency_data: true
+    
+    data_formats:
+      - "json"
+    
+    supported_markets:
+      - "US"
+      - "IN"
+      - "EU"
+      - "ASIA"
+    
+  # ===============================
+  # Alpha Vantage (Backup)
+  # ===============================
+  alpha_vantage:
+    base_url: "https://www.alphavantage.co"
+    rate_limits:
+      free_tier: 5  # requests per minute
+      premium: 75   # requests per minute
+    
+    endpoints:
+      intraday: "/query?function=TIME_SERIES_INTRADAY"
+      daily: "/query?function=TIME_SERIES_DAILY"
+      weekly: "/query?function=TIME_SERIES_WEEKLY"
+      monthly: "/query?function=TIME_SERIES_MONTHLY"
+    
+    features:
+      historical_data: true
+      technical_indicators: true
+      fundamental_data: true
+      forex_data: true
+      crypto_data: true
+    
+# ===============================
+# Error Handling Configuration
+# ===============================
+error_handling:
+  max_connection_errors: 5
+  circuit_breaker:
+    failure_threshold: 5
+    recovery_timeout: 300
+    half_open_max_calls: 3
+  
+  error_codes:
+    retriable: [500, 502, 503, 504, 429]
+    non_retriable: [400, 401, 403, 404]
+  
+  fallback_strategy:
+    primary_to_secondary: true
+    cache_on_failure: true
+    offline_mode: true
+
+# ===============================
+# Monitoring and Logging
+# ===============================
+monitoring:
+  enable_metrics: true
+  metrics_interval: 60  # seconds
+  
+  log_levels:
+    api_calls: "INFO"
+    errors: "ERROR"
+    performance: "DEBUG"
+  
+  alert_thresholds:
+    response_time: 5.0  # seconds
+    error_rate: 0.05    # 5%
+    quota_usage: 0.9    # 90%
+
+# ===============================
+# Security Configuration
+# ===============================
+security:
+  encrypt_credentials: true
+  credential_rotation: 86400  # 24 hours
+  ip_whitelist_enabled: false
+  
+  headers:
+    x_api_key: true
+    authorization: true
+    user_agent: true
+    accept: "application/json"
+    content_type: "application/json"
+
+# ===============================
+# Data Quality and Validation
+# ===============================
+data_validation:
+  enable_validation: true
+  schema_validation: true
+  
+  quality_checks:
+    completeness: true
+    timeliness: true
+    accuracy: true
+    consistency: true
+  
+  thresholds:
+    missing_data_tolerance: 0.05  # 5%
+    delay_tolerance: 300  # 5 minutes
+    price_variance_threshold: 0.1  # 10%
+
+# ===============================
+# Development and Testing
+# ===============================
+development:
+  mock_mode: false
+  sandbox_mode: false
+  debug_mode: false
+  
+  test_data:
+    use_historical: true
+    date_range: "2023-01-01,2024-12-31"
+    symbols: ["RELIANCE", "TCS", "INFY", "HDFCBANK"]
+  
+  performance_testing:
+    load_test_duration: 300  # 5 minutes
+    concurrent_users: 10
+    ramp_up_time: 60  # 1 minute

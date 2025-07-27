@@ -1,0 +1,145 @@
+# Development Dependencies for Price Predictor Project
+
+# Testing Framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1
+pytest-asyncio>=0.21.1
+pytest-benchmark>=4.0.0
+pytest-xdist>=3.3.1
+pytest-html>=3.2.0
+
+# Code Quality and Formatting
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+pylint>=2.17.5
+mypy>=1.5.1
+bandit>=1.7.5
+
+# Pre-commit Hooks
+pre-commit>=3.3.3
+
+# Documentation
+sphinx>=7.1.2
+sphinx-rtd-theme>=1.3.0
+sphinx-autodoc-typehints>=1.24.0
+myst-parser>=2.0.0
+
+# Security and Vulnerability Scanning
+safety>=2.3.4
+pip-audit>=2.6.1
+
+# Performance and Profiling
+memory-profiler>=0.61.0
+line-profiler>=4.1.1
+py-spy>=0.3.14
+
+# Development Tools
+ipdb>=0.13.13
+jupyter>=1.0.0
+notebook>=7.0.2
+jupyterlab>=4.0.5
+
+# Load Testing
+locust>=2.16.1
+
+# API Testing and Mocking
+responses>=0.23.3
+httpx>=0.24.1
+aioresponses>=0.7.4
+
+# Database Testing (if needed)
+pytest-postgresql>=5.0.0
+factory-boy>=3.3.0
+
+# Additional Development Utilities
+watchdog>=3.0.0
+python-dotenv>=1.0.0
+click>=8.1.6
+rich>=13.5.2
+tqdm>=4.66.1
+
+# Type Checking Extensions
+types-requests>=2.31.0.2
+types-PyYAML>=6.0.12.11
+types-python-dateutil>=2.8.19.14
+
+# Linting Plugins
+flake8-docstrings>=1.7.0
+flake8-import-order>=0.18.2
+flake8-builtins>=2.1.0
+flake8-comprehensions>=3.14.0
+flake8-simplify>=0.20.0
+
+# Testing Utilities for Financial Data
+freezegun>=1.2.2  # For mocking datetime in tests
+pytest-datadir>=1.4.1  # For test data files
+pytest-socket>=0.6.0  # Network call control in tests
+
+# ML Model Testing
+pytest-sklearn>=0.1.0
+hypothesis>=6.82.6  # Property-based testing
+
+# Code Coverage Tools
+coverage[toml]>=7.3.0
+codecov>=2.1.13
+
+# Development Server and Hot Reloading
+uvicorn[standard]>=0.23.2  # If using FastAPI
+gunicorn>=21.2.0  # Production WSGI server
+
+# Environment Management
+python-decouple>=3.8
+environs>=9.5.0
+
+# Debugging and Profiling
+pudb>=2022.1.3
+scalene>=1.5.26
+snakeviz>=2.2.0
+
+# Code Complexity Analysis
+radon>=6.0.1
+xenon>=0.9.1
+
+# Git Hooks and Version Control
+gitpython>=3.1.32
+commitizen>=3.6.0
+
+# Data Validation for Testing
+cerberus>=1.3.5
+marshmallow>=3.20.1
+
+# Mock and Stub Libraries
+mimesis>=11.1.0  # Fake data generation
+faker>=19.3.1
+
+# Performance Monitoring
+psutil>=5.9.5
+
+# Container and Docker Testing
+testcontainers>=3.7.1
+docker>=6.1.3
+
+# API Schema Validation
+jsonschema>=4.19.0
+pydantic>=2.1.1
+
+# Async Testing Utilities
+asynctest>=0.13.0; python_version < '3.8'
+pytest-asyncio>=0.21.1
+
+# Database Migration Testing (if applicable)
+alembic>=1.11.2
+
+# Configuration Management
+dynaconf>=3.2.2
+omegaconf>=2.3.0
+
+# Monitoring and Metrics (Development)
+prometheus-client>=0.17.1
+
+# Development-specific ML Libraries
+matplotlib>=3.7.2  # For development plots
+seaborn>=0.12.2   # Enhanced plotting
+plotly>=5.15.0    # Interactive plots

@@ -90,8 +90,8 @@ from .spread_validator import (
 
 # Version information
 __version__ = "1.0.0"
-__author__ = "AI Trading Systems"
-__email__ = "support@trading-systems.ai"
+__author__ = "1998prakhargupta"
+__email__ = "1998prakhargupta@gmail.com"
 
 # Package metadata
 __all__ = [

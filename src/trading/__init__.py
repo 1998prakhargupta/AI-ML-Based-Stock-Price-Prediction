@@ -8,7 +8,7 @@ transaction costs across different brokers and trading strategies.
 """
 
 __version__ = "1.0.0"
-__author__ = "Stock Price Predictor Team"
+__author__ = "1998prakhargupta"
 
 # Import core components for easy access
 try:

@@ -1,0 +1,374 @@
+# Training Configuration for Stock Price Prediction Models
+# Comprehensive ML training pipeline configuration
+
+training:
+  # ===============================
+  # Global Training Settings
+  # ===============================
+  global:
+    random_seed: 42
+    reproducible: true
+    gpu_enabled: true
+    mixed_precision: true
+    distributed_training: false
+    
+  # ===============================
+  # Data Pipeline Configuration
+  # ===============================
+  data:
+    # Data Sources
+    sources:
+      primary: "breeze"  # breeze, kite, yahoo_finance
+      fallback: ["yahoo_finance", "alpha_vantage"]
+    
+    # Data Collection
+    collection:
+      symbols: ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "BHARTIARTL", "ITC", "KOTAKBANK", "LT", "ASIANPAINT"]
+      timeframes: ["1min", "5min", "15min", "1hour", "1day"]
+      history_days: 365
+      update_frequency: "real_time"  # real_time, hourly, daily
+    
+    # Data Preprocessing
+    preprocessing:
+      remove_outliers: true
+      outlier_method: "iqr"  # iqr, zscore, isolation_forest
+      outlier_threshold: 3.0
+      
+      handle_missing: true
+      missing_method: "forward_fill"  # forward_fill, interpolate, drop
+      max_missing_ratio: 0.05
+      
+      normalize: true
+      normalization_method: "minmax"  # minmax, standard, robust
+      
+      feature_scaling: true
+      scaling_method: "standard"  # standard, minmax, robust
+    
+    # Data Splitting
+    splitting:
+      train_ratio: 0.7
+      validation_ratio: 0.15
+      test_ratio: 0.15
+      time_series_split: true
+      cross_validation_folds: 5
+    
+  # ===============================
+  # Feature Engineering
+  # ===============================
+  features:
+    # Technical Indicators
+    technical_indicators:
+      moving_averages: [5, 10, 20, 50, 200]
+      exponential_ma: [12, 26]
+      bollinger_bands: true
+      rsi_period: 14
+      macd: true
+      stochastic: true
+      williams_r: true
+      cci_period: 20
+      atr_period: 14
+      obv: true
+      momentum_period: 10
+    
+    # Price Features
+    price_features:
+      returns: true
+      log_returns: true
+      volatility: true
+      price_ratios: true
+      gap_analysis: true
+      support_resistance: true
+    
+    # Volume Features
+    volume_features:
+      volume_ma: [5, 20]
+      volume_ratio: true
+      volume_oscillator: true
+      volume_price_trend: true
+    
+    # Market Features
+    market_features:
+      market_cap: true
+      sector_performance: true
+      market_breadth: true
+      vix_correlation: true
+    
+    # Time Features
+    time_features:
+      hour_of_day: true
+      day_of_week: true
+      month_of_year: true
+      quarter: true
+      market_session: true
+      holiday_indicator: true
+    
+    # Lag Features
+    lag_features:
+      price_lags: [1, 2, 3, 5, 10]
+      volume_lags: [1, 2, 3]
+      indicator_lags: [1, 2]
+    
+  # ===============================
+  # Model Configuration
+  # ===============================
+  models:
+    # Random Forest
+    random_forest:
+      enabled: true
+      n_estimators: 100
+      max_depth: 20
+      min_samples_split: 5
+      min_samples_leaf: 2
+      max_features: "sqrt"
+      bootstrap: true
+      random_state: 42
+      n_jobs: -1
+    
+    # XGBoost
+    xgboost:
+      enabled: true
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      gamma: 0
+      min_child_weight: 1
+      reg_alpha: 0
+      reg_lambda: 1
+      random_state: 42
+    
+    # LightGBM
+    lightgbm:
+      enabled: true
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      min_child_samples: 20
+      reg_alpha: 0
+      reg_lambda: 0
+      random_state: 42
+    
+    # LSTM
+    lstm:
+      enabled: true
+      sequence_length: 60
+      layers:
+        - units: 50
+          dropout: 0.2
+          recurrent_dropout: 0.2
+          return_sequences: true
+        - units: 50
+          dropout: 0.2
+          recurrent_dropout: 0.2
+          return_sequences: false
+        - units: 25
+          dropout: 0.2
+      
+      dense_layers:
+        - units: 25
+          dropout: 0.2
+        - units: 1
+      
+      optimizer: "adam"
+      learning_rate: 0.001
+      batch_size: 32
+      epochs: 100
+      early_stopping_patience: 10
+      reduce_lr_patience: 5
+    
+    # Transformer
+    transformer:
+      enabled: false
+      sequence_length: 60
+      d_model: 128
+      num_heads: 8
+      num_layers: 4
+      dff: 512
+      dropout_rate: 0.1
+      learning_rate: 0.001
+      batch_size: 32
+      epochs: 100
+    
+    # Ensemble
+    ensemble:
+      enabled: true
+      method: "voting"  # voting, stacking, blending
+      voting_type: "soft"  # hard, soft
+      weights: "auto"  # auto, [0.3, 0.3, 0.4]
+      
+      stacking:
+        meta_learner: "linear_regression"
+        cv_folds: 5
+      
+      blending:
+        holdout_ratio: 0.2
+        meta_learner: "ridge"
+  
+  # ===============================
+  # Training Pipeline
+  # ===============================
+  pipeline:
+    # Hyperparameter Tuning
+    hyperparameter_tuning:
+      enabled: true
+      method: "random_search"  # grid_search, random_search, bayesian
+      n_trials: 50
+      cv_folds: 3
+      scoring: "neg_mean_squared_error"
+      n_jobs: -1
+    
+    # Model Selection
+    model_selection:
+      metric: "rmse"  # rmse, mae, mape, r2
+      cross_validation: true
+      cv_folds: 5
+      stratified: false
+    
+    # Training Process
+    training_process:
+      batch_size: 1000
+      save_checkpoints: true
+      checkpoint_frequency: 10  # epochs
+      early_stopping: true
+      patience: 20
+      min_delta: 0.001
+    
+    # Validation
+    validation:
+      validation_split: 0.2
+      validation_frequency: 1  # epochs
+      metrics: ["rmse", "mae", "mape", "r2"]
+      plot_metrics: true
+  
+  # ===============================
+  # Model Evaluation
+  # ===============================
+  evaluation:
+    # Metrics
+    metrics:
+      regression: ["rmse", "mae", "mape", "r2", "explained_variance"]
+      classification: ["accuracy", "precision", "recall", "f1", "auc_roc"]
+      financial: ["sharpe_ratio", "max_drawdown", "profit_factor", "hit_rate"]
+    
+    # Backtesting
+    backtesting:
+      enabled: true
+      start_date: "2023-01-01"
+      end_date: "2024-12-31"
+      initial_capital: 100000
+      commission: 0.001
+      slippage: 0.0005
+    
+    # Statistical Tests
+    statistical_tests:
+      normality: "shapiro"
+      stationarity: "adf"
+      autocorrelation: "ljung_box"
+      heteroscedasticity: "breusch_pagan"
+    
+    # Visualization
+    visualization:
+      learning_curves: true
+      feature_importance: true
+      prediction_plots: true
+      residual_plots: true
+      correlation_matrix: true
+  
+  # ===============================
+  # Model Deployment
+  # ===============================
+  deployment:
+    # Model Saving
+    model_saving:
+      format: "pickle"  # pickle, joblib, onnx, tensorflow
+      compression: true
+      versioning: true
+      metadata: true
+    
+    # Model Registry
+    model_registry:
+      enabled: true
+      backend: "mlflow"  # mlflow, wandb, local
+      experiment_name: "stock_prediction"
+      tracking_uri: "sqlite:///mlruns.db"
+    
+    # Production Settings
+    production:
+      model_format: "onnx"
+      batch_prediction: true
+      real_time_prediction: true
+      monitoring: true
+      alerting: true
+  
+  # ===============================
+  # Resource Management
+  # ===============================
+  resources:
+    # Compute
+    compute:
+      cpu_cores: 4
+      memory_gb: 8
+      gpu_memory_gb: 4
+      disk_space_gb: 50
+    
+    # Parallel Processing
+    parallel:
+      n_jobs: -1
+      backend: "loky"  # loky, threading, multiprocessing
+      max_workers: 4
+    
+    # Memory Management
+    memory:
+      chunk_size: 10000
+      memory_efficient: true
+      garbage_collection: true
+  
+  # ===============================
+  # Monitoring and Logging
+  # ===============================
+  monitoring:
+    # Training Monitoring
+    training_monitoring:
+      log_level: "INFO"
+      log_frequency: 10  # batches
+      save_logs: true
+      tensorboard: true
+    
+    # Performance Monitoring
+    performance_monitoring:
+      track_memory: true
+      track_gpu: true
+      track_time: true
+      profile_code: false
+    
+    # Model Monitoring
+    model_monitoring:
+      drift_detection: true
+      performance_degradation: true
+      data_quality: true
+      prediction_monitoring: true
+  
+  # ===============================
+  # Experiment Tracking
+  # ===============================
+  experiment_tracking:
+    enabled: true
+    platform: "mlflow"  # mlflow, wandb, tensorboard
+    
+    # Tracking Configuration
+    tracking:
+      parameters: true
+      metrics: true
+      artifacts: true
+      models: true
+      tags: true
+    
+    # Experiment Organization
+    organization:
+      project_name: "stock_price_prediction"
+      experiment_prefix: "exp"
+      run_name_format: "{model}_{timestamp}"
+      tags: ["production", "baseline", "experiment"]

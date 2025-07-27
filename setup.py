@@ -22,15 +22,15 @@ def read_requirements():
 setup(
     name="price-predictor",
     version="1.0.0",
-    author="Price Predictor Team",
-    author_email="team@pricepredictor.com",
+    author="1998prakhargupta",
+    author_email="1998prakhargupta@gmail.com",
     description="A comprehensive stock price prediction system with API compliance",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/your-username/price-predictor",
+    url="https://github.com/1998prakhargupta/price-predictor",
     project_urls={
-        "Bug Tracker": "https://github.com/your-username/price-predictor/issues",
-        "Documentation": "https://github.com/your-username/price-predictor/docs",
+        "Bug Tracker": "https://github.com/1998prakhargupta/price-predictor/issues",
+        "Documentation": "https://github.com/1998prakhargupta/price-predictor/docs",
     },
     classifiers=[
         "Development Status :: 4 - Beta",
