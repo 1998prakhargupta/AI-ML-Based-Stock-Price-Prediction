@@ -216,7 +216,10 @@ class BrokerConfigurationManager:
         for key, value in fee_dict.items():
             if key == "volume_discount_tiers" and isinstance(value, dict):
                 converted_dict[key] = {k: Decimal(str(v)) for k, v in value.items()}
-            elif isinstance(value, str) and key.endswith(('_rate', '_commission', '_fee', '_multiplier', '_spread')):
+            elif isinstance(value, str) and (
+                key.endswith(('_rate', '_commission', '_fee', '_multiplier', '_spread', '_percentage')) or
+                key.startswith(('equity_', 'options_', 'futures_', 'min_', 'max_', 'sec_', 'finra_', 'platform_', 'data_', 'inactivity_', 'currency_', 'international_', 'pre_', 'after_'))
+            ):
                 try:
                     converted_dict[key] = Decimal(value)
                 except:
