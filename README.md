@@ -32,17 +32,17 @@ This project delivers a complete ecosystem for intelligent stock price predictio
 ### System Architecture
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Application Layer                           │
+│                    Application Layer                            │
 ├─────────────────────────────────────────────────────────────────┤
-│  Web APIs   │  ML Pipeline │  Cost Engine │  Compliance Suite │
+│  Web APIs   │  ML Pipeline │  Cost Engine │  Compliance Suite   │
 ├─────────────────────────────────────────────────────────────────┤
-│                    Business Logic Layer                       │
+│                    Business Logic Layer                         │
 ├─────────────────────────────────────────────────────────────────┤
-│  Prediction Models │ Feature Engineering │ Transaction Costs  │
+│  Prediction Models │ Feature Engineering │ Transaction Costs    │
 ├─────────────────────────────────────────────────────────────────┤
-│                    Data Access Layer                          │
+│                    Data Access Layer                            │
 ├─────────────────────────────────────────────────────────────────┤
-│  Market Data APIs │ Database Layer │ Caching │ File Storage   │
+│  Market Data APIs  │ Database Layer │ Caching │  File Storage   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
