@@ -265,7 +265,7 @@ class CostConfigurationValidator:
                     # Convert string values to proper types before creating object
                     test_config = {}
                     for key, value in config_dict.items():
-                        if isinstance(value, str) and key.endswith(('_commission', '_fee', '_rate', '_multiplier')):
+                        if isinstance(value, str) and key.endswith(('_commission', '_fee', '_rate', '_multiplier', '_percentage')):
                             try:
                                 test_config[key] = Decimal(value)
                             except:
