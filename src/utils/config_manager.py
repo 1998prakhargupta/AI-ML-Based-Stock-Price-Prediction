@@ -58,9 +58,9 @@ class Config:
         missing_breeze = [key for key in required_for_breeze if not self._config.get(key)]
         
         if missing_breeze:
-            logger.error(f"Missing Breeze credentials: {missing_breeze}")
-            logger.error("Please set environment variables or add to config.json file")
-            raise ValueError(f"Missing required Breeze credentials: {missing_breeze}")
+            logger.warning(f"Missing Breeze credentials: {missing_breeze}")
+            logger.warning("Breeze API features will be disabled. Cost reporting will still work.")
+            # Don't raise an error - allow cost reporting to work without Breeze credentials
     
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value."""
@@ -96,17 +96,21 @@ class Config:
             configured_model_path = self._config.get('MODEL_SAVE_PATH', '')
             
             # If paths point to /content (Colab), use local alternatives
-            if configured_data_path.startswith('/content'):
+            if configured_data_path and configured_data_path.startswith('/content'):
                 data_path = os.path.join(current_dir, 'data')
             else:
                 data_path = configured_data_path or os.path.join(current_dir, 'data')
                 
-            if configured_model_path.startswith('/content'):
+            if configured_model_path and configured_model_path.startswith('/content'):
                 model_path = os.path.join(current_dir, 'models')
             else:
                 model_path = configured_model_path or os.path.join(current_dir, 'models')
                 
             google_drive = current_dir
+        
+        # Ensure paths exist
+        os.makedirs(data_path, exist_ok=True)
+        os.makedirs(model_path, exist_ok=True)
         
         return {
             'google_drive': google_drive,
@@ -163,6 +167,37 @@ class Config:
         """Get the model save path."""
         paths = self.get_data_paths()
         return paths['model_save_path']
+    
+    def get_cost_reporting_config(self) -> Dict[str, Any]:
+        """Get cost reporting configuration."""
+        return {
+            'enabled': self._config.get('COST_REPORTING_ENABLED', True),
+            'include_charts': self._config.get('COST_INCLUDE_CHARTS', True),
+            'include_broker_comparison': self._config.get('COST_INCLUDE_BROKER_COMPARISON', True),
+            'include_impact_analysis': self._config.get('COST_INCLUDE_IMPACT_ANALYSIS', True),
+            'cost_alert_threshold_bps': self._config.get('COST_ALERT_THRESHOLD_BPS', 25.0),
+            'efficiency_benchmark': self._config.get('COST_EFFICIENCY_BENCHMARK', 80.0),
+            'auto_recommendations': self._config.get('COST_AUTO_RECOMMENDATIONS', True)
+        }
+    
+    def is_cost_reporting_enabled(self) -> bool:
+        """Check if cost reporting is enabled."""
+        return self._config.get('COST_REPORTING_ENABLED', True)
+    
+    def get_plot_dpi(self) -> int:
+        """Get plot DPI setting."""
+        return self._config.get('PLOT_DPI', 300)
+    
+    def get_plot_format(self) -> str:
+        """Get plot format setting."""
+        return self._config.get('PLOT_FORMAT', 'png')
+    
+    def get_plots_path(self) -> str:
+        """Get the plots save path."""
+        data_path = self.get_data_save_path()
+        plots_path = os.path.join(data_path, 'plots')
+        os.makedirs(plots_path, exist_ok=True)
+        return plots_path
 
 # Global config instance
 config = Config()

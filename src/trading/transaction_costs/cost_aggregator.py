@@ -41,9 +41,9 @@ from .constants import SYSTEM_DEFAULTS, CONFIDENCE_LEVELS
 
 # Import existing cost calculators
 from .brokers.broker_factory import BrokerFactory
-from .market_impact.adaptive_model import AdaptiveMarketImpactModel
+from .market_impact.adaptive_model import AdaptiveImpactModel
 from .slippage.slippage_estimator import SlippageEstimator
-from .spreads.realtime_estimator import RealtimeSpreadEstimator
+from .spreads.realtime_estimator import RealTimeSpreadEstimator
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +139,7 @@ class CostAggregator:
         if enable_market_impact:
             self.components['market_impact'] = CostComponent(
                 name='market_impact',
-                calculator=AdaptiveMarketImpactModel(),
+                calculator=AdaptiveImpactModel(),
                 enabled=True,
                 weight=1.0,
                 dependencies=['spreads'],
@@ -160,7 +160,7 @@ class CostAggregator:
         if enable_spreads:
             self.components['spreads'] = CostComponent(
                 name='spreads',
-                calculator=RealtimeSpreadEstimator(),
+                calculator=RealTimeSpreadEstimator(),
                 enabled=True,
                 weight=1.0,
                 timeout_seconds=3
