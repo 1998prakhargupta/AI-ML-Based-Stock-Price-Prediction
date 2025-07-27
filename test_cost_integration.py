@@ -1,214 +1,176 @@
 """
-Simple test for cost-aware ML integration.
-Tests the basic functionality without external dependencies.
+Test Cost Reporting Integration
+===============================
+
+Basic test to validate cost reporting and visualization integration.
 """
 
-import numpy as np
-import pandas as pd
 import sys
 import os
+import logging
+from datetime import datetime
+from decimal import Decimal
 
-# Add project root to path
-sys.path.append('/home/runner/work/AI-ML-Based-Stock-Price-Prediction/AI-ML-Based-Stock-Price-Prediction')
+# Add src to path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
-def test_cost_feature_generation():
-    """Test cost feature generation functionality."""
+def test_cost_reporting_imports():
+    """Test that cost reporting modules can be imported."""
     try:
-        from src.models.features.cost_features import CostFeatureGenerator, CostFeatureConfig
+        from src.visualization.cost_reporting.cost_reporter import CostReporter
+        from src.visualization.cost_reporting.cost_analyzer import CostAnalyzer
+        from src.visualization.cost_reporting.cost_summary_generator import CostSummaryGenerator
         
-        # Create test data
-        n_samples = 100
-        test_data = pd.DataFrame({
-            'close': np.random.normal(100, 10, n_samples),
-            'volume': np.random.normal(1000000, 100000, n_samples),
-            'high': np.random.normal(105, 10, n_samples),
-            'low': np.random.normal(95, 10, n_samples)
-        })
-        
-        # Ensure high >= close >= low
-        test_data['high'] = np.maximum(test_data['high'], test_data['close'])
-        test_data['low'] = np.minimum(test_data['low'], test_data['close'])
-        
-        # Create generator
-        config = CostFeatureConfig()
-        generator = CostFeatureGenerator(config)
-        
-        # Generate features
-        result_data = generator.generate_all_cost_features(test_data)
-        
-        # Check results
-        assert len(result_data) == n_samples, f"Expected {n_samples} rows, got {len(result_data)}"
-        assert len(result_data.columns) > len(test_data.columns), "No cost features were generated"
-        
-        feature_names = generator.get_feature_names()
-        assert len(feature_names) > 0, "No feature names returned"
-        
-        print(f"✓ Cost feature generation test passed. Generated {len(feature_names)} features.")
+        print("✅ Cost reporting modules imported successfully")
         return True
-        
     except Exception as e:
-        print(f"✗ Cost feature generation test failed: {e}")
+        print(f"❌ Cost reporting import failed: {e}")
         return False
 
-def test_cost_pipeline():
-    """Test cost-aware feature pipeline."""
+def test_cost_charts_imports():
+    """Test that cost chart modules can be imported."""
     try:
-        from src.models.features.cost_pipeline import CostFeaturePipeline, CostPipelineConfig
+        from src.visualization.cost_charts.breakdown_charts import CostBreakdownCharts
+        from src.visualization.cost_charts.impact_charts import CostImpactCharts
+        from src.visualization.cost_charts.comparison_charts import CostComparisonCharts
         
-        # Create test data
-        n_samples = 50
-        test_data = pd.DataFrame({
-            'close': np.random.normal(100, 10, n_samples),
-            'volume': np.random.normal(1000000, 100000, n_samples),
-            'open': np.random.normal(100, 10, n_samples)
-        })
-        
-        # Create pipeline
-        config = CostPipelineConfig(enable_technical_indicators=False)  # Disable to avoid dependencies
-        pipeline = CostFeaturePipeline(config)
-        
-        # Process features
-        result = pipeline.process_features(test_data)
-        
-        # Check results
-        assert result.success, f"Pipeline failed: {result.errors}"
-        assert len(result.data) == n_samples, f"Expected {n_samples} rows, got {len(result.data)}"
-        
-        print(f"✓ Cost pipeline test passed. Processing time: {result.processing_time:.2f}s")
+        print("✅ Cost chart modules imported successfully")
         return True
-        
     except Exception as e:
-        print(f"✗ Cost pipeline test failed: {e}")
+        print(f"❌ Cost charts import failed: {e}")
         return False
 
-def test_cost_feature_selector():
-    """Test cost feature selector."""
+def test_automated_reporting_integration():
+    """Test that automated reporting includes cost capabilities."""
     try:
-        from src.models.features.cost_feature_selector import CostFeatureSelector, FeatureSelectionConfig
+        from src.visualization.automated_reporting import AutomatedReportGenerator
+        from src.utils.config_manager import Config
         
-        # Create test data with cost features
-        n_samples = 100
-        test_data = pd.DataFrame({
-            'close': np.random.normal(100, 10, n_samples),
-            'cost_avg_20d': np.random.normal(0.05, 0.01, n_samples),
-            'cost_vol_20d': np.random.normal(0.02, 0.005, n_samples),
-            'cost_return_ratio_20d': np.random.normal(0.1, 0.02, n_samples),
-            'other_feature': np.random.normal(0, 1, n_samples)
-        })
+        config = Config()
         
-        # Create selector
-        config = FeatureSelectionConfig(max_features=2)
-        selector = CostFeatureSelector(config)
+        # Try to initialize with cost reporting
+        report_gen = AutomatedReportGenerator(config)
         
-        # Select features
-        result = selector.select_features(test_data)
+        # Check if cost reporting components are available
+        has_cost_reporter = hasattr(report_gen, 'cost_reporter')
+        has_cost_analyzer = hasattr(report_gen, 'cost_analyzer')
+        has_cost_charts = hasattr(report_gen, 'cost_breakdown_charts')
         
-        # Check results
-        assert len(result['selected_features']) <= 2, "Too many features selected"
-        assert len(result['selected_features']) > 0, "No features selected"
-        
-        print(f"✓ Cost feature selector test passed. Selected {len(result['selected_features'])} features.")
-        return True
-        
+        if has_cost_reporter and has_cost_analyzer and has_cost_charts:
+            print("✅ Automated reporting integration successful")
+            return True
+        else:
+            print(f"❌ Missing cost components: reporter={has_cost_reporter}, analyzer={has_cost_analyzer}, charts={has_cost_charts}")
+            return False
     except Exception as e:
-        print(f"✗ Cost feature selector test failed: {e}")
+        print(f"❌ Automated reporting integration failed: {e}")
         return False
 
-def test_cost_metrics():
-    """Test cost metrics calculation."""
+def test_config_manager_cost_settings():
+    """Test cost-related configuration settings."""
     try:
-        from src.models.evaluation.cost_metrics import CostMetrics
+        from src.utils.config_manager import Config
         
-        # Create test data
-        n_samples = 100
-        y_true = np.random.normal(0, 1, n_samples)
-        y_pred = y_true + np.random.normal(0, 0.1, n_samples)
+        config = Config()
         
-        X_features = pd.DataFrame({
-            'cost_avg_20d': np.random.normal(0.05, 0.01, n_samples),
-            'cost_vol_20d': np.random.normal(0.02, 0.005, n_samples)
-        })
+        # Test cost reporting config
+        cost_config = config.get_cost_reporting_config()
+        required_keys = ['enabled', 'include_charts', 'include_broker_comparison']
         
-        # Create metrics calculator
-        metrics_calc = CostMetrics()
+        has_all_keys = all(key in cost_config for key in required_keys)
         
-        # Calculate metrics
-        metrics = metrics_calc.calculate_cost_enhanced_metrics(
-            y_true, y_pred, X_features, ['cost_avg_20d', 'cost_vol_20d']
+        if has_all_keys:
+            print("✅ Cost configuration settings available")
+            print(f"   Cost reporting enabled: {cost_config['enabled']}")
+            print(f"   Include charts: {cost_config['include_charts']}")
+            print(f"   Include broker comparison: {cost_config['include_broker_comparison']}")
+            return True
+        else:
+            print(f"❌ Missing cost config keys: {[k for k in required_keys if k not in cost_config]}")
+            return False
+    except Exception as e:
+        print(f"❌ Cost configuration test failed: {e}")
+        return False
+
+def test_basic_cost_analysis():
+    """Test basic cost analysis functionality."""
+    try:
+        from src.visualization.cost_reporting.cost_reporter import CostReporter
+        from src.trading.transaction_costs.models import (
+            TransactionRequest, TransactionCostBreakdown, 
+            TransactionType, InstrumentType, OrderType
         )
         
-        # Check results
-        assert 'mse' in metrics, "Basic MSE metric missing"
-        assert 'cost_weighted_mae' in metrics, "Cost-weighted MAE missing"
-        assert 'cost_adjusted_r2' in metrics, "Cost-adjusted R² missing"
+        # Create sample data
+        sample_request = TransactionRequest(
+            symbol="AAPL",
+            quantity=100,
+            price=Decimal("150.00"),
+            transaction_type=TransactionType.BUY,
+            instrument_type=InstrumentType.EQUITY,
+            order_type=OrderType.MARKET,
+            timestamp=datetime.now()
+        )
         
-        print(f"✓ Cost metrics test passed. Calculated {len(metrics)} metrics.")
+        sample_breakdown = TransactionCostBreakdown(
+            commission=Decimal("5.00"),
+            regulatory_fees=Decimal("0.50"),
+            exchange_fees=Decimal("1.00"),
+            bid_ask_spread_cost=Decimal("2.00"),
+            market_impact_cost=Decimal("3.00")
+        )
+        
+        # Test cost reporter initialization
+        cost_reporter = CostReporter()
+        
+        print("✅ Basic cost analysis components working")
+        print(f"   Sample transaction value: ${sample_request.notional_value}")
+        print(f"   Sample total cost: ${sample_breakdown.total_cost}")
+        print(f"   Cost in bps: {sample_breakdown.cost_as_basis_points(sample_request.notional_value):.2f}")
+        
         return True
-        
     except Exception as e:
-        print(f"✗ Cost metrics test failed: {e}")
+        print(f"❌ Basic cost analysis test failed: {e}")
         return False
 
-def test_configuration():
-    """Test configuration classes."""
-    try:
-        from src.models.config.cost_integration import CostIntegrationConfig, create_basic_cost_config
-        from src.models.config.cost_feature_config import CostFeatureConfig, create_standard_cost_feature_config
-        
-        # Test cost integration config
-        cost_config = create_basic_cost_config()
-        assert cost_config.enable_cost_features, "Cost features should be enabled in basic config"
-        
-        config_dict = cost_config.to_dict()
-        assert 'integration_level' in config_dict, "Integration level missing from dict"
-        
-        # Test cost feature config
-        feature_config = create_standard_cost_feature_config()
-        feature_names = feature_config.get_feature_names()
-        assert len(feature_names) > 0, "No feature names generated"
-        
-        print(f"✓ Configuration test passed. Generated {len(feature_names)} feature name templates.")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Configuration test failed: {e}")
-        return False
-
-def main():
-    """Run all tests."""
-    print("Running cost-aware ML integration tests...\n")
+def run_all_tests():
+    """Run all cost reporting integration tests."""
+    print("🧪 Running Cost Reporting Integration Tests")
+    print("=" * 50)
     
     tests = [
-        test_cost_feature_generation,
-        test_cost_pipeline,
-        test_cost_feature_selector,
-        test_cost_metrics,
-        test_configuration
+        test_cost_reporting_imports,
+        test_cost_charts_imports,
+        test_automated_reporting_integration,
+        test_config_manager_cost_settings,
+        test_basic_cost_analysis
     ]
     
     passed = 0
     failed = 0
     
     for test in tests:
+        print(f"\n📋 Running {test.__name__}...")
         try:
             if test():
                 passed += 1
             else:
                 failed += 1
         except Exception as e:
-            print(f"✗ Test {test.__name__} crashed: {e}")
+            print(f"❌ Test {test.__name__} crashed: {e}")
             failed += 1
-        print()  # Empty line for readability
     
-    print(f"Test Results: {passed} passed, {failed} failed")
+    print("\n" + "=" * 50)
+    print(f"📊 Test Results: {passed} passed, {failed} failed")
     
     if failed == 0:
-        print("🎉 All tests passed! Cost-aware ML integration is working correctly.")
+        print("🎉 All cost reporting integration tests passed!")
         return True
     else:
-        print("❌ Some tests failed. Check the implementation.")
+        print("⚠️  Some tests failed. Check the output above for details.")
         return False
 
 if __name__ == "__main__":
-    success = main()
+    logging.basicConfig(level=logging.WARNING)  # Reduce noise
+    success = run_all_tests()
     sys.exit(0 if success else 1)

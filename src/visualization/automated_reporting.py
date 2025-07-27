@@ -19,6 +19,14 @@ from src.utils.file_management_utils import SafeFileManager, SaveStrategy
 from src.utils.app_config import Config
 from src.visualization.visualization_utils import ComprehensiveVisualizer
 
+# Import cost reporting components
+from src.visualization.cost_reporting.cost_reporter import CostReporter
+from src.visualization.cost_reporting.cost_analyzer import CostAnalyzer
+from src.visualization.cost_reporting.cost_summary_generator import CostSummaryGenerator
+from src.visualization.cost_charts.breakdown_charts import CostBreakdownCharts
+from src.visualization.cost_charts.impact_charts import CostImpactCharts
+from src.visualization.cost_charts.comparison_charts import CostComparisonCharts
+
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -55,6 +63,14 @@ class AutomatedReportGenerator:
         self.file_manager = SafeFileManager(self.config.get_data_save_path())
         self.visualizer = ComprehensiveVisualizer(self.config)
         
+        # Initialize cost reporting components
+        self.cost_reporter = CostReporter(self.config)
+        self.cost_analyzer = CostAnalyzer()
+        self.cost_summary_generator = CostSummaryGenerator()
+        self.cost_breakdown_charts = CostBreakdownCharts(self.config)
+        self.cost_impact_charts = CostImpactCharts(self.config)
+        self.cost_comparison_charts = CostComparisonCharts(self.config)
+        
         # Report settings
         self.reports_dir = os.path.join(self.config.get_data_save_path(), 'reports')
         os.makedirs(self.reports_dir, exist_ok=True)
@@ -62,7 +78,12 @@ class AutomatedReportGenerator:
         # Templates and formatting
         self.report_template = self._load_report_template()
         
-        logger.info("Automated report generator initialized")
+        # Cost reporting configuration
+        self.cost_reporting_enabled = getattr(self.config, 'cost_reporting_enabled', True)
+        self.include_cost_charts = getattr(self.config, 'include_cost_charts', True)
+        self.include_broker_comparison = getattr(self.config, 'include_broker_comparison', True)
+        
+        logger.info("Automated report generator initialized with cost reporting capabilities")
     
     def generate_comprehensive_model_report(self,
                                           models_dict: Dict[str, Any],
@@ -72,7 +93,9 @@ class AutomatedReportGenerator:
                                           y_pred_ensemble: np.ndarray,
                                           training_data: pd.DataFrame,
                                           feature_names: List[str],
-                                          report_name: str = "comprehensive_model_analysis") -> str:
+                                          report_name: str = "comprehensive_model_analysis",
+                                          cost_data: Optional[Dict[str, Any]] = None,
+                                          broker_configs: Optional[List[Any]] = None) -> str:
         """
         Generate comprehensive model analysis report maintaining all existing logic.
         
@@ -85,6 +108,8 @@ class AutomatedReportGenerator:
             training_data: Training dataset
             feature_names: List of feature names
             report_name: Base name for report files
+            cost_data: Optional transaction cost data for cost analysis
+            broker_configs: Optional broker configurations for cost comparison
             
         Returns:
             Path to generated report
@@ -127,9 +152,24 @@ class AutomatedReportGenerator:
             training_data, feature_names, report_id
         )
         
+        # Generate cost analysis if enabled and data available
+        cost_analysis_results = None
+        cost_visualization_paths = []
+        
+        if self.cost_reporting_enabled and cost_data:
+            try:
+                cost_analysis_results = self._generate_cost_analysis(
+                    cost_data, report_id, broker_configs
+                )
+                if cost_analysis_results:
+                    cost_visualization_paths = cost_analysis_results.get('visualization_paths', [])
+                    visualization_paths.extend(cost_visualization_paths)
+            except Exception as e:
+                logger.warning(f"Cost analysis failed: {e}")
+        
         # Generate recommendations based on analysis
         recommendations = self._generate_model_recommendations(
-            results_dict, ensemble_metrics, data_summary
+            results_dict, ensemble_metrics, data_summary, cost_analysis_results
         )
         
         # Create comprehensive report object
@@ -142,6 +182,10 @@ class AutomatedReportGenerator:
             visualizations_paths=visualization_paths,
             recommendations=recommendations
         )
+        
+        # Add cost analysis to report if available
+        if cost_analysis_results:
+            comprehensive_report.cost_analysis = cost_analysis_results
         
         # Generate report files
         report_paths = self._generate_report_files(comprehensive_report)
@@ -398,7 +442,7 @@ class AutomatedReportGenerator:
         return viz_paths
     
     def _generate_model_recommendations(self, results_dict: Dict, ensemble_metrics: Dict,
-                                      data_summary: Dict) -> List[str]:
+                                      data_summary: Dict, cost_analysis: Optional[Dict] = None) -> List[str]:
         """Generate model recommendations based on analysis."""
         recommendations = []
         
@@ -433,7 +477,157 @@ class AutomatedReportGenerator:
         elif feature_count < 10:
             recommendations.append("Low feature count - consider feature engineering for better performance")
         
-        return recommendations
+        # Cost-based recommendations
+        if cost_analysis:
+            cost_recommendations = cost_analysis.get('recommendations', [])
+            for rec in cost_recommendations[:3]:  # Add top 3 cost recommendations
+                recommendations.append(f"COST: {rec}")
+        
+    def _generate_cost_analysis(
+        self, 
+        cost_data: Dict[str, Any], 
+        report_id: str, 
+        broker_configs: Optional[List[Any]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Generate comprehensive cost analysis for the report.
+        
+        Args:
+            cost_data: Transaction cost data
+            report_id: Report identifier
+            broker_configs: Optional broker configurations
+            
+        Returns:
+            Cost analysis results or None if analysis fails
+        """
+        try:
+            logger.info("Generating cost analysis for comprehensive report")
+            
+            cost_analysis = {
+                'summary': None,
+                'breakdown_analysis': None,
+                'impact_analysis': None,
+                'broker_comparison': None,
+                'visualization_paths': [],
+                'recommendations': []
+            }
+            
+            # Extract cost data components
+            transactions = cost_data.get('transactions', [])
+            cost_breakdowns = cost_data.get('cost_breakdowns', [])
+            
+            if not transactions or not cost_breakdowns:
+                logger.warning("Insufficient cost data for analysis")
+                return None
+            
+            # Generate cost summary
+            try:
+                from datetime import datetime, timedelta
+                period_start = datetime.now() - timedelta(days=30)
+                period_end = datetime.now()
+                
+                executive_report = self.cost_summary_generator.generate_executive_summary(
+                    transactions, cost_breakdowns, period_start, period_end, broker_configs
+                )
+                cost_analysis['summary'] = {
+                    'total_cost': executive_report.summary.total_cost,
+                    'average_cost_bps': executive_report.summary.average_cost_bps,
+                    'efficiency_score': executive_report.summary.cost_efficiency_score,
+                    'transaction_count': executive_report.summary.transaction_count,
+                    'key_insights': executive_report.summary.key_insights,
+                    'action_items': executive_report.action_items
+                }
+            except Exception as e:
+                logger.warning(f"Cost summary generation failed: {e}")
+            
+            # Generate cost visualizations if enabled
+            if self.include_cost_charts:
+                viz_paths = []
+                
+                # Cost breakdown charts
+                try:
+                    notional_values = [float(t.notional_value) for t in transactions]
+                    
+                    # Pie chart
+                    pie_path = self.cost_breakdown_charts.create_cost_component_pie_chart(
+                        cost_breakdowns, f"cost_breakdown_{report_id}"
+                    )
+                    if pie_path:
+                        viz_paths.append(pie_path)
+                    
+                    # Distribution histogram
+                    hist_path = self.cost_breakdown_charts.create_cost_distribution_histogram(
+                        cost_breakdowns, notional_values, f"cost_distribution_{report_id}"
+                    )
+                    if hist_path:
+                        viz_paths.append(hist_path)
+                        
+                except Exception as e:
+                    logger.warning(f"Cost breakdown charts generation failed: {e}")
+                
+                # Cost impact charts
+                try:
+                    returns = cost_data.get('returns', [])
+                    timestamps = [t.timestamp for t in transactions]
+                    
+                    if returns and len(returns) == len(cost_breakdowns):
+                        # Cost vs returns analysis
+                        impact_path = self.cost_impact_charts.create_cost_vs_returns_scatter(
+                            cost_breakdowns, returns, notional_values, f"cost_impact_{report_id}"
+                        )
+                        if impact_path:
+                            viz_paths.append(impact_path)
+                    
+                    # Cost efficiency over time
+                    efficiency_path = self.cost_impact_charts.create_cost_efficiency_over_time(
+                        cost_breakdowns, timestamps, notional_values, f"cost_efficiency_{report_id}"
+                    )
+                    if efficiency_path:
+                        viz_paths.append(efficiency_path)
+                        
+                except Exception as e:
+                    logger.warning(f"Cost impact charts generation failed: {e}")
+                
+                # Broker comparison charts
+                if self.include_broker_comparison and broker_configs and len(broker_configs) > 1:
+                    try:
+                        # Use representative transaction for comparison
+                        if transactions:
+                            comparison_result = self.cost_reporter.compare_broker_costs(
+                                transactions[0], broker_configs
+                            )
+                            
+                            comparison_path = self.cost_comparison_charts.create_broker_comparison_chart(
+                                comparison_result, f"broker_comparison_{report_id}"
+                            )
+                            if comparison_path:
+                                viz_paths.append(comparison_path)
+                                
+                            cost_analysis['broker_comparison'] = {
+                                'best_broker': comparison_result.best_broker,
+                                'potential_savings': float(comparison_result.potential_savings),
+                                'recommendations': comparison_result.recommendations
+                            }
+                    except Exception as e:
+                        logger.warning(f"Broker comparison failed: {e}")
+                
+                cost_analysis['visualization_paths'] = viz_paths
+            
+            # Compile recommendations
+            all_recommendations = []
+            if cost_analysis['summary']:
+                all_recommendations.extend(cost_analysis['summary'].get('action_items', []))
+            if cost_analysis['broker_comparison']:
+                all_recommendations.extend(cost_analysis['broker_comparison'].get('recommendations', []))
+            
+            cost_analysis['recommendations'] = all_recommendations[:5]  # Top 5
+            
+            logger.info(f"Cost analysis completed with {len(cost_analysis['visualization_paths'])} charts")
+            return cost_analysis
+            
+        except Exception as e:
+            logger.error(f"Cost analysis generation failed: {e}")
+            return None
     
     def _generate_report_files(self, report: ComprehensiveReport) -> Dict[str, str]:
         """Generate all report files."""
