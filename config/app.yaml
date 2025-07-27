@@ -1,0 +1,199 @@
+# Main Application Configuration
+# Price Predictor Project - Enterprise Configuration
+# Author: 1998prakhargupta
+
+app:
+  name: "price-predictor"
+  version: "1.0.0"
+  author: "1998prakhargupta"
+  description: "AI-ML Based Stock Price Prediction System"
+  
+  # Environment Configuration
+  environment: "${ENVIRONMENT:development}"
+  debug: "${DEBUG:false}"
+  
+  # Application Server Settings
+  server:
+    host: "${APP_HOST:0.0.0.0}"
+    port: "${APP_PORT:8000}"
+    workers: "${APP_WORKERS:4}"
+    timeout: "${APP_TIMEOUT:300}"
+  
+  # Database Configuration
+  database:
+    primary:
+      type: "postgresql"
+      host: "${DB_HOST:localhost}"
+      port: "${DB_PORT:5432}"
+      name: "${DB_NAME:price_predictor}"
+      user: "${DB_USER:postgres}"
+      password: "${DB_PASSWORD:}"
+      pool_size: "${DB_POOL_SIZE:10}"
+      max_overflow: "${DB_MAX_OVERFLOW:20}"
+    
+    cache:
+      type: "redis"
+      host: "${REDIS_HOST:localhost}"
+      port: "${REDIS_PORT:6379}"
+      db: "${REDIS_DB:0}"
+      password: "${REDIS_PASSWORD:}"
+      ttl: "${CACHE_TTL:3600}"
+
+  # API Configuration
+  api:
+    version: "v1"
+    prefix: "/api/v1"
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 100
+      burst_size: 20
+    
+    cors:
+      enabled: true
+      allow_origins: 
+        - "http://localhost:3000"
+        - "https://app.1998prakhargupta.dev"
+      allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allow_headers: ["*"]
+
+  # Logging Configuration
+  logging:
+    level: "${LOG_LEVEL:INFO}"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    handlers:
+      - type: "console"
+        level: "INFO"
+      - type: "file"
+        level: "DEBUG"
+        filename: "logs/app.log"
+        max_bytes: 10485760  # 10MB
+        backup_count: 5
+      - type: "rotating_file"
+        level: "ERROR"
+        filename: "logs/error.log"
+        max_bytes: 10485760
+        backup_count: 10
+
+  # Security Configuration
+  security:
+    secret_key: "${SECRET_KEY:}"
+    jwt:
+      algorithm: "HS256"
+      expiration: 3600
+    
+    encryption:
+      algorithm: "AES-256-GCM"
+      key: "${ENCRYPTION_KEY:}"
+    
+    api_keys:
+      enabled: true
+      header_name: "X-API-Key"
+
+  # File Storage Configuration
+  storage:
+    base_path: "${STORAGE_BASE_PATH:./data}"
+    uploads:
+      max_size: 100MB
+      allowed_types: [".csv", ".xlsx", ".json", ".parquet"]
+    
+    paths:
+      raw_data: "data/raw"
+      processed_data: "data/processed"
+      models: "models"
+      reports: "data/reports"
+      plots: "data/plots"
+      cache: "data/cache"
+      logs: "logs"
+      backups: "backups"
+
+  # ML Configuration
+  machine_learning:
+    default_model: "RandomForestRegressor"
+    models_path: "models"
+    experiments_path: "models/experiments"
+    production_path: "models/production"
+    
+    training:
+      validation_split: 0.2
+      test_split: 0.1
+      cross_validation_folds: 5
+      random_state: 42
+      
+    hyperparameter_tuning:
+      enabled: true
+      method: "grid_search"  # or "random_search", "bayesian"
+      max_iterations: 100
+      
+    feature_engineering:
+      auto_scaling: true
+      feature_selection: true
+      pca_components: null  # null for auto-selection
+
+  # External APIs Configuration
+  external_apis:
+    breeze:
+      base_url: "https://api.icicidirect.com"
+      timeout: 30
+      retry_attempts: 3
+      rate_limit: 60  # requests per minute
+      
+    yahoo_finance:
+      timeout: 30
+      retry_attempts: 3
+      rate_limit: 2000  # requests per hour
+      
+    alpha_vantage:
+      base_url: "https://www.alphavantage.co"
+      timeout: 30
+      retry_attempts: 3
+      rate_limit: 5  # requests per minute for free tier
+
+  # Monitoring & Observability
+  monitoring:
+    metrics:
+      enabled: true
+      port: 9090
+      path: "/metrics"
+      
+    health_check:
+      enabled: true
+      path: "/health"
+      timeout: 5
+      
+    tracing:
+      enabled: false
+      jaeger_endpoint: "${JAEGER_ENDPOINT:}"
+      
+    alerts:
+      enabled: true
+      email: "1998prakhargupta@gmail.com"
+      webhooks: []
+
+  # Background Jobs
+  jobs:
+    enabled: true
+    scheduler: "celery"  # or "apscheduler"
+    broker_url: "${CELERY_BROKER_URL:redis://localhost:6379/1}"
+    result_backend: "${CELERY_RESULT_BACKEND:redis://localhost:6379/2}"
+    
+    tasks:
+      data_pipeline:
+        schedule: "0 2 * * *"  # Daily at 2 AM
+        enabled: true
+        
+      model_training:
+        schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+        enabled: true
+        
+      cleanup:
+        schedule: "0 1 * * *"  # Daily at 1 AM
+        enabled: true
+
+  # Feature Flags
+  features:
+    transaction_costs: true
+    ml_pipeline: true
+    real_time_predictions: true
+    api_v2: false
+    advanced_analytics: true
+    automated_reporting: true

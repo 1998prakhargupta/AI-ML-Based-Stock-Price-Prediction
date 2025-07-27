@@ -1,14 +1,22 @@
 # =============================================================================
-# 🎯 COMPREHENSIVE GITIGNORE FOR ML PRICE PREDICTION PROJECT
+# 🎯 COMPREHENSIVE GITIGNORE FOR ENTERPRISE ML PRICE PREDICTION PROJECT
 # =============================================================================
 # This file excludes sensitive data, large files, generated files, and 
 # environment-specific files while preserving essential project structure.
+# 
+# Enterprise Structure: app/, config/, deployments/, tools/, external/
+# Author: 1998prakhargupta
+# Updated: 2025-07-27
 
 # =============================================================================
 # 🔐 CREDENTIALS AND SENSITIVE DATA
 # =============================================================================
 # Local configuration and environment files
-config.local.json
+config/local.yaml
+config/local.json
+config/environments/local.yaml
+config/secrets/
+config/private/
 .env
 *.env
 .env.*
@@ -47,12 +55,14 @@ data/cache/*
 data/outputs/*
 data/plots/*
 data/reports/*
+data/backups/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/cache/.gitkeep
 !data/outputs/.gitkeep
 !data/plots/.gitkeep
 !data/reports/.gitkeep
+!data/backups/.gitkeep
 
 # Data file patterns
 *.csv
@@ -74,11 +84,13 @@ data/reports/*
 
 # Exclude JSON data files but keep config
 *.json
-!configs/*.json
+!config/*.json
+!config/**/*.json
 !*config*.json
 !package*.json
 !requirements*.json
 !.vscode/*.json
+!src/**/*config*.json
 
 # Text data files
 *.txt
@@ -117,9 +129,11 @@ downloads/
 models/checkpoints/*
 models/experiments/*
 models/production/*
+models/archived/*
 !models/checkpoints/.gitkeep
 !models/experiments/.gitkeep
 !models/production/.gitkeep
+!models/archived/.gitkeep
 
 # Model file patterns
 *.h5
@@ -150,6 +164,154 @@ mlflow.db
 mlflow_tracking/
 
 # TensorBoard logs
+logs/tensorboard/*
+logs/training/*
+logs/experiments/*
+!logs/tensorboard/.gitkeep
+!logs/training/.gitkeep
+!logs/experiments/.gitkeep
+
+# =============================================================================
+# 🏗️ APPLICATION AND BUILD ARTIFACTS
+# =============================================================================
+# Application core files (preserve structure)
+app/core/cache/*
+app/core/temp/*
+app/core/runtime/*
+app/core/uploads/*
+app/core/downloads/*
+app/logs/*
+app/tmp/*
+!app/core/cache/.gitkeep
+!app/core/temp/.gitkeep
+!app/core/runtime/.gitkeep
+!app/core/uploads/.gitkeep
+!app/core/downloads/.gitkeep
+!app/logs/.gitkeep
+!app/tmp/.gitkeep
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+wheels/
+share/python-wheels/
+
+# Application logs and runtime
+logs/*.log
+logs/application/*
+logs/api/*
+logs/background/*
+logs/workers/*
+logs/celery/*
+logs/gunicorn/*
+!logs/application/.gitkeep
+!logs/api/.gitkeep
+!logs/background/.gitkeep
+!logs/workers/.gitkeep
+!logs/celery/.gitkeep
+!logs/gunicorn/.gitkeep
+
+# Temporary application files
+tmp/
+temp/
+cache/
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# =============================================================================
+# 🔧 TOOLS AND EXTERNAL DEPENDENCIES  
+# =============================================================================
+# Tools output and temporary files
+tools/temp/*
+tools/output/*
+tools/cache/*
+tools/logs/*
+tools/reports/*
+!tools/temp/.gitkeep
+!tools/output/.gitkeep
+!tools/cache/.gitkeep
+!tools/logs/.gitkeep
+!tools/reports/.gitkeep
+
+# External dependencies and vendor files
+external/vendor/*
+external/downloads/*
+external/cache/*
+external/temp/*
+external/logs/*
+!external/vendor/.gitkeep
+!external/downloads/.gitkeep
+!external/cache/.gitkeep
+!external/temp/.gitkeep
+!external/logs/.gitkeep
+
+# =============================================================================
+# 🐳 DEPLOYMENT AND INFRASTRUCTURE
+# =============================================================================
+# Docker build context excludes
+deployments/docker/context/*
+deployments/docker/volumes/*
+deployments/docker/secrets/*
+deployments/docker/logs/*
+deployments/docker/data/*
+deployments/docker/cache/*
+!deployments/docker/context/.gitkeep
+!deployments/docker/volumes/.gitkeep
+!deployments/docker/secrets/.gitkeep
+!deployments/docker/logs/.gitkeep
+!deployments/docker/data/.gitkeep
+!deployments/docker/cache/.gitkeep
+
+# Kubernetes secrets and configs
+deployments/kubernetes/secrets/*
+deployments/kubernetes/configmaps/*
+deployments/kubernetes/logs/*
+deployments/kubernetes/data/*
+deployments/kubernetes/backups/*
+!deployments/kubernetes/secrets/.gitkeep
+!deployments/kubernetes/configmaps/.gitkeep
+!deployments/kubernetes/logs/.gitkeep
+!deployments/kubernetes/data/.gitkeep
+!deployments/kubernetes/backups/.gitkeep
+
+# Local deployment overrides
+docker-compose.override.yml
+docker-compose.local.yml
+.dockerignore.local
+
+# Environment-specific deployment files
+deployments/docker/docker-compose.*.local.yml
+deployments/kubernetes/*.local.yaml
+
+# =============================================================================
+# 🧪 TESTING AND QUALITY ASSURANCE
+# =============================================================================
+# Test outputs and reports
+tests/output/*
+tests/reports/*
+tests/coverage/*
+tests/screenshots/*
+!tests/output/.gitkeep
+!tests/reports/.gitkeep
+!tests/coverage/.gitkeep
+!tests/screenshots/.gitkeep
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+.tox/
+
+# Test databases
+test_*.db
+test_*.sqlite
+test_*.sqlite3
 tensorboard_logs/
 tb_logs/
 runs/
@@ -673,4 +835,69 @@ wandb/
 reproducibility_state_*.json
 seed_*.json
 environment_*.yml
+
+# =============================================================================
+# 🏢 ENTERPRISE STRUCTURE SPECIFIC PATTERNS
+# =============================================================================
+# Application layer temporary files
+app/runtime/*
+app/cache/*
+app/sessions/*
+app/uploads/*
+app/downloads/*
+!app/runtime/.gitkeep
+!app/cache/.gitkeep
+!app/sessions/.gitkeep
+!app/uploads/.gitkeep
+!app/downloads/.gitkeep
+
+# Configuration management
+config/generated/*
+config/compiled/*
+config/cache/*
+config/backup/*
+!config/generated/.gitkeep
+!config/compiled/.gitkeep
+!config/cache/.gitkeep
+!config/backup/.gitkeep
+
+# Deployment artifacts
+deployments/builds/*
+deployments/releases/*
+deployments/artifacts/*
+deployments/temp/*
+!deployments/builds/.gitkeep
+!deployments/releases/.gitkeep
+!deployments/artifacts/.gitkeep
+!deployments/temp/.gitkeep
+
+# Tools and development utilities
+tools/builds/*
+tools/artifacts/*
+tools/generated/*
+!tools/builds/.gitkeep
+!tools/artifacts/.gitkeep
+!tools/generated/.gitkeep
+
+# External integrations
+external/apis/cache/*
+external/apis/logs/*
+external/plugins/cache/*
+external/plugins/logs/*
+!external/apis/cache/.gitkeep
+!external/apis/logs/.gitkeep
+!external/plugins/cache/.gitkeep
+!external/plugins/logs/.gitkeep
+
+# Enterprise monitoring and metrics
+metrics/*
+monitoring/*
+telemetry/*
+!metrics/.gitkeep
+!monitoring/.gitkeep
+!telemetry/.gitkeep
+
+# Cleanup old structure references
+configs/
+k8s/
 

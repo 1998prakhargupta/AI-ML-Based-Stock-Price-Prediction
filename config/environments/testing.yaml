@@ -1,0 +1,55 @@
+# Testing Environment Configuration
+# Settings for testing and CI/CD
+
+app:
+  environment: "testing"
+  debug: true
+  
+  server:
+    host: "localhost"
+    port: 8001
+    workers: 1
+  
+  database:
+    primary:
+      name: "price_predictor_test"
+      pool_size: 5
+      
+    cache:
+      db: 1  # Separate Redis DB for testing
+  
+  logging:
+    level: "WARNING"
+    handlers:
+      - type: "console"
+        level: "WARNING"
+        
+  external_apis:
+    # Use mock APIs for testing
+    breeze:
+      mock: true
+      rate_limit: 1000
+    yahoo_finance:
+      mock: true
+      rate_limit: 10000
+    alpha_vantage:
+      mock: true
+      rate_limit: 100
+      
+  monitoring:
+    metrics:
+      enabled: false
+    alerts:
+      enabled: false
+      
+  jobs:
+    enabled: false
+    
+  # Testing-specific settings
+  testing:
+    use_test_db: true
+    cleanup_after_tests: true
+    parallel_execution: true
+    coverage_reporting: true
+    mock_external_apis: true
+    fast_tests: true

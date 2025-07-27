@@ -1,0 +1,58 @@
+# Development Docker Compose Override
+# Extends the main docker-compose.yml for development environment
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      target: development
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ../../src:/app/src:ro
+      - ../../app:/app/app:ro
+      - ../../config:/app/config:ro
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+      - ../../notebooks:/app/notebooks
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Debugger port
+    command: ["python", "-m", "app.main", "--reload"]
+    
+  db:
+    environment:
+      - POSTGRES_DB=price_predictor_dev
+      
+  redis:
+    command: redis-server --appendonly yes
+    
+  # Development-specific services
+  jupyter:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+      target: development
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../../notebooks:/app/notebooks
+      - ../../data:/app/data
+      - ../../src:/app/src:ro
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=development_token
+      
+  adminer:
+    image: adminer:4.8.1
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+      - ADMINER_DESIGN=modern

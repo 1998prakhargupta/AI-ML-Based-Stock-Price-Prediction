@@ -1,0 +1,72 @@
+# Production Environment Configuration
+# Production-optimized settings
+
+app:
+  environment: "production"
+  debug: false
+  
+  server:
+    host: "0.0.0.0"
+    port: 8000
+    workers: 4
+    timeout: 300
+    max_requests: 1000
+    max_requests_jitter: 100
+  
+  database:
+    primary:
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+      
+    cache:
+      connection_pool:
+        max_connections: 50
+        retry_on_timeout: true
+  
+  logging:
+    level: "INFO"
+    handlers:
+      - type: "console"
+        level: "WARNING"
+      - type: "file"
+        level: "INFO"
+        filename: "logs/app.log"
+        max_bytes: 52428800  # 50MB
+        backup_count: 10
+      - type: "syslog"
+        level: "ERROR"
+        address: "/dev/log"
+        
+  api:
+    rate_limiting:
+      requests_per_minute: 1000
+      burst_size: 100
+      
+  security:
+    csrf_protection: true
+    secure_headers: true
+    ssl_redirect: true
+    hsts_max_age: 31536000
+    
+  monitoring:
+    metrics:
+      enabled: true
+    health_check:
+      enabled: true
+    tracing:
+      enabled: true
+    alerts:
+      enabled: true
+      
+  jobs:
+    enabled: true
+    
+  # Production-specific settings
+  production:
+    ssl_verification: true
+    error_reporting: true
+    performance_monitoring: true
+    backup_enabled: true
+    maintenance_mode: false

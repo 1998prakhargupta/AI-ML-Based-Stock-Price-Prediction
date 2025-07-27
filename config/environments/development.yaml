@@ -1,0 +1,57 @@
+# Development Environment Configuration
+# Overrides for development environment
+
+app:
+  environment: "development"
+  debug: true
+  
+  server:
+    host: "localhost"
+    port: 8000
+    workers: 1
+    reload: true
+  
+  database:
+    primary:
+      host: "localhost"
+      name: "price_predictor_dev"
+      
+    cache:
+      host: "localhost"
+      db: 0
+  
+  logging:
+    level: "DEBUG"
+    handlers:
+      - type: "console"
+        level: "DEBUG"
+        
+  external_apis:
+    breeze:
+      rate_limit: 30  # Lower rate limit for development
+    yahoo_finance:
+      rate_limit: 1000
+    alpha_vantage:
+      rate_limit: 3
+      
+  monitoring:
+    metrics:
+      enabled: false
+    tracing:
+      enabled: false
+    alerts:
+      enabled: false
+      
+  jobs:
+    enabled: false  # Disable background jobs in development
+    
+  features:
+    api_v2: true  # Enable experimental features in development
+    
+  # Development-specific settings
+  development:
+    auto_reload: true
+    show_sql: true
+    debug_toolbar: true
+    profiling: true
+    test_data_generation: true
