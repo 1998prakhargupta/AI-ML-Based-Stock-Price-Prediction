@@ -1,0 +1,613 @@
+# Enterprise Training Configuration for Ensemble Models
+# Complete configuration for all ML/DL models including Random Forest, Gradient Boosting,
+# XGBoost, LightGBM, Bi-LSTM, GRU, Transformer, Ridge, Lasso, Elastic Net, SVR, ARIMA, Prophet
+
+training:
+  # ===============================
+  # Global Training Settings
+  # ===============================
+  global:
+    random_seed: 42
+    reproducible: true
+    gpu_enabled: true
+    mixed_precision: true
+    distributed_training: false
+    early_stopping: true
+    cross_validation: true
+    hyperparameter_tuning: true
+    
+  # ===============================
+  # Data Pipeline Configuration
+  # ===============================
+  data:
+    # Data Sources
+    sources:
+      primary: "breeze"  # breeze, kite, yahoo_finance
+      fallback: ["yahoo_finance", "alpha_vantage"]
+      
+    # Feature Engineering
+    features:
+      technical_indicators: true
+      rolling_features: true
+      lag_features: [1, 2, 3, 5, 10, 20]
+      correlation_features: true
+      volatility_features: true
+      volume_features: true
+      time_features: true
+      
+    # Data Processing
+    processing:
+      scaling_method: "standard"  # standard, minmax, robust
+      handle_missing: "forward_fill"
+      outlier_detection: true
+      outlier_method: "isolation_forest"
+      feature_selection: true
+      feature_selection_method: "mutual_info"
+      
+  # ===============================
+  # Model Configurations
+  # ===============================
+  models:
+    
+    # Traditional ML Models
+    random_forest:
+      enabled: true
+      hyperparameters:
+        n_estimators: 200
+        max_depth: 15
+        min_samples_split: 5
+        min_samples_leaf: 2
+        max_features: "sqrt"
+        bootstrap: true
+        random_state: 42
+        n_jobs: -1
+      tuning:
+        enabled: true
+        param_grid:
+          n_estimators: [100, 200, 300]
+          max_depth: [10, 15, 20, null]
+          min_samples_split: [2, 5, 10]
+          min_samples_leaf: [1, 2, 4]
+          max_features: ["sqrt", "log2", null]
+          
+    gradient_boosting:
+      enabled: true
+      hyperparameters:
+        n_estimators: 150
+        max_depth: 8
+        learning_rate: 0.1
+        subsample: 0.8
+        min_samples_split: 5
+        min_samples_leaf: 2
+        random_state: 42
+      tuning:
+        enabled: true
+        param_grid:
+          n_estimators: [100, 150, 200]
+          max_depth: [6, 8, 10]
+          learning_rate: [0.05, 0.1, 0.15]
+          subsample: [0.7, 0.8, 0.9]
+          
+    xgboost:
+      enabled: true
+      hyperparameters:
+        n_estimators: 200
+        max_depth: 8
+        learning_rate: 0.1
+        subsample: 0.8
+        colsample_bytree: 0.8
+        reg_alpha: 0.1
+        reg_lambda: 1.0
+        random_state: 42
+        n_jobs: -1
+        eval_metric: "rmse"
+      tuning:
+        enabled: true
+        param_grid:
+          n_estimators: [150, 200, 250]
+          max_depth: [6, 8, 10]
+          learning_rate: [0.05, 0.1, 0.15]
+          subsample: [0.7, 0.8, 0.9]
+          colsample_bytree: [0.7, 0.8, 0.9]
+          reg_alpha: [0, 0.1, 0.5]
+          reg_lambda: [0.5, 1.0, 2.0]
+          
+    lightgbm:
+      enabled: true
+      hyperparameters:
+        n_estimators: 200
+        max_depth: 8
+        learning_rate: 0.1
+        subsample: 0.8
+        colsample_bytree: 0.8
+        reg_alpha: 0.1
+        reg_lambda: 1.0
+        random_state: 42
+        n_jobs: -1
+        verbose: -1
+        objective: "regression"
+      tuning:
+        enabled: true
+        param_grid:
+          n_estimators: [150, 200, 250]
+          max_depth: [6, 8, 10]
+          learning_rate: [0.05, 0.1, 0.15]
+          num_leaves: [31, 50, 100]
+          subsample: [0.7, 0.8, 0.9]
+          colsample_bytree: [0.7, 0.8, 0.9]
+          
+    # Linear Models
+    ridge:
+      enabled: true
+      hyperparameters:
+        alpha: 1.0
+        fit_intercept: true
+        normalize: false
+        random_state: 42
+        solver: "auto"
+      tuning:
+        enabled: true
+        param_grid:
+          alpha: [0.1, 1.0, 10.0, 100.0]
+          
+    lasso:
+      enabled: true
+      hyperparameters:
+        alpha: 0.1
+        fit_intercept: true
+        normalize: false
+        max_iter: 1000
+        random_state: 42
+        selection: "cyclic"
+      tuning:
+        enabled: true
+        param_grid:
+          alpha: [0.01, 0.1, 1.0, 10.0]
+          
+    elastic_net:
+      enabled: true
+      hyperparameters:
+        alpha: 0.1
+        l1_ratio: 0.5
+        fit_intercept: true
+        normalize: false
+        max_iter: 1000
+        random_state: 42
+        selection: "cyclic"
+      tuning:
+        enabled: true
+        param_grid:
+          alpha: [0.01, 0.1, 1.0]
+          l1_ratio: [0.1, 0.5, 0.7, 0.9]
+          
+    # Support Vector Regression Models
+    svr_rbf:
+      enabled: true
+      hyperparameters:
+        kernel: "rbf"
+        C: 1.0
+        gamma: "scale"
+        epsilon: 0.1
+        cache_size: 200
+      tuning:
+        enabled: true
+        param_grid:
+          C: [0.1, 1.0, 10.0]
+          gamma: ["scale", "auto", 0.001, 0.01, 0.1]
+          epsilon: [0.01, 0.1, 0.2]
+          
+    svr_linear:
+      enabled: true
+      hyperparameters:
+        kernel: "linear"
+        C: 1.0
+        epsilon: 0.1
+        cache_size: 200
+      tuning:
+        enabled: true
+        param_grid:
+          C: [0.1, 1.0, 10.0, 100.0]
+          epsilon: [0.01, 0.1, 0.2]
+          
+    svr_poly:
+      enabled: true
+      hyperparameters:
+        kernel: "poly"
+        degree: 3
+        C: 1.0
+        gamma: "scale"
+        epsilon: 0.1
+        cache_size: 200
+      tuning:
+        enabled: true
+        param_grid:
+          degree: [2, 3, 4]
+          C: [0.1, 1.0, 10.0]
+          gamma: ["scale", "auto"]
+          
+    # Deep Learning Models
+    bi_lstm:
+      enabled: true
+      hyperparameters:
+        sequence_length: 60
+        lstm_units: 128
+        lstm_layers: 2
+        dropout: 0.2
+        recurrent_dropout: 0.2
+        dense_units: 64
+        activation: "relu"
+        optimizer: "adam"
+        learning_rate: 0.001
+        batch_size: 32
+        epochs: 100
+        validation_split: 0.2
+        early_stopping_patience: 20
+        reduce_lr_patience: 10
+      tuning:
+        enabled: true
+        param_grid:
+          lstm_units: [64, 128, 256]
+          dropout: [0.1, 0.2, 0.3]
+          batch_size: [16, 32, 64]
+          learning_rate: [0.0001, 0.001, 0.01]
+          
+    gru:
+      enabled: true
+      hyperparameters:
+        sequence_length: 60
+        gru_units: 128
+        gru_layers: 2
+        dropout: 0.2
+        recurrent_dropout: 0.2
+        dense_units: 64
+        activation: "relu"
+        optimizer: "adam"
+        learning_rate: 0.001
+        batch_size: 32
+        epochs: 100
+        validation_split: 0.2
+        early_stopping_patience: 20
+        reduce_lr_patience: 10
+      tuning:
+        enabled: true
+        param_grid:
+          gru_units: [64, 128, 256]
+          dropout: [0.1, 0.2, 0.3]
+          batch_size: [16, 32, 64]
+          learning_rate: [0.0001, 0.001, 0.01]
+          
+    transformer:
+      enabled: true
+      hyperparameters:
+        sequence_length: 60
+        d_model: 128
+        num_heads: 8
+        num_layers: 4
+        dff: 512
+        dropout: 0.1
+        activation: "relu"
+        optimizer: "adam"
+        learning_rate: 0.0001
+        batch_size: 32
+        epochs: 100
+        validation_split: 0.2
+        early_stopping_patience: 25
+        reduce_lr_patience: 15
+        warmup_steps: 4000
+      tuning:
+        enabled: true
+        param_grid:
+          d_model: [64, 128, 256]
+          num_heads: [4, 8, 16]
+          num_layers: [2, 4, 6]
+          dropout: [0.05, 0.1, 0.15]
+          
+    # Time Series Models
+    arima:
+      enabled: true
+      hyperparameters:
+        order: [5, 1, 0]
+        seasonal_order: [1, 1, 1, 12]
+        trend: "c"
+        method: "lbfgs"
+        maxiter: 50
+        suppress_warnings: true
+      tuning:
+        enabled: true
+        param_grid:
+          p: [1, 2, 3, 4, 5]
+          d: [0, 1, 2]
+          q: [0, 1, 2, 3]
+          seasonal_p: [0, 1, 2]
+          seasonal_d: [0, 1]
+          seasonal_q: [0, 1, 2]
+          
+    prophet:
+      enabled: true
+      hyperparameters:
+        growth: "linear"
+        daily_seasonality: true
+        weekly_seasonality: true
+        yearly_seasonality: true
+        seasonality_mode: "additive"
+        changepoint_prior_scale: 0.05
+        seasonality_prior_scale: 10.0
+        holidays_prior_scale: 10.0
+        mcmc_samples: 0
+        interval_width: 0.80
+        uncertainty_samples: 1000
+      tuning:
+        enabled: true
+        param_grid:
+          changepoint_prior_scale: [0.001, 0.01, 0.1, 0.5]
+          seasonality_prior_scale: [0.01, 0.1, 1.0, 10.0]
+          seasonality_mode: ["additive", "multiplicative"]
+          
+  # ===============================
+  # Ensemble Configuration
+  # ===============================
+  ensemble:
+    enabled: true
+    method: "weighted_average"  # weighted_average, stacking, voting, blending
+    voting_type: "soft"  # hard, soft (for voting method)
+    weights: "auto"  # auto, custom weights [0.1, 0.2, 0.3, ...]
+    stacking_meta_model: "ridge"  # ridge, lasso, xgboost, lightgbm
+    
+    # Weight calculation method
+    weight_method: "performance"  # performance, cost_efficiency, hybrid
+    performance_metric: "r2_score"  # r2_score, rmse, mae
+    cost_weight: 0.1  # Weight for cost efficiency in hybrid method
+    
+    # Model selection for ensemble
+    selection:
+      enabled: true
+      method: "top_k"  # top_k, threshold, correlation_filter
+      top_k: 5  # Select top 5 models
+      threshold: 0.8  # Minimum performance threshold
+      correlation_threshold: 0.9  # Remove highly correlated models
+      
+  # ===============================
+  # Validation Configuration
+  # ===============================
+  validation:
+    method: "time_series_split"  # time_series_split, walk_forward, holdout
+    test_size: 0.2
+    validation_size: 0.2
+    cv_folds: 5
+    
+    # Walk-forward validation
+    walk_forward:
+      initial_window: 252  # Initial training window (1 year)
+      step_size: 21  # Step size (1 month)
+      max_steps: 12  # Maximum steps
+      
+    # Metrics to calculate
+    metrics:
+      - "r2_score"
+      - "rmse"
+      - "mae"
+      - "mape"
+      - "directional_accuracy"
+      - "sharpe_ratio"
+      - "max_drawdown"
+      
+  # ===============================
+  # Cost-Aware Training
+  # ===============================
+  cost_optimization:
+    enabled: true
+    cost_features:
+      - "bid_ask_spread"
+      - "market_impact"
+      - "volume_ratio"
+      - "volatility"
+      - "time_to_close"
+      
+    # Cost objectives
+    objectives:
+      primary: "prediction_accuracy"  # prediction_accuracy, cost_efficiency, hybrid
+      cost_weight: 0.15  # Weight for cost in hybrid objective
+      
+    # Transaction cost modeling
+    transaction_costs:
+      broker_fees: 0.0005  # 0.05%
+      market_impact: "linear"  # linear, square_root, adaptive
+      slippage: 0.0001  # 0.01%
+      
+  # ===============================
+  # Hyperparameter Tuning
+  # ===============================
+  hyperparameter_tuning:
+    enabled: true
+    method: "bayesian"  # grid, random, bayesian, genetic
+    n_trials: 100  # For Bayesian optimization
+    timeout: 3600  # Timeout in seconds
+    
+    # Bayesian optimization settings
+    bayesian:
+      acquisition_function: "ei"  # ei, pi, ucb
+      n_initial_points: 10
+      alpha: 1e-6
+      
+    # Genetic algorithm settings
+    genetic:
+      population_size: 50
+      generations: 100
+      mutation_rate: 0.1
+      crossover_rate: 0.8
+      
+  # ===============================
+  # Model Persistence
+  # ===============================
+  persistence:
+    save_models: true
+    save_predictions: true
+    save_metrics: true
+    save_feature_importance: true
+    
+    # Model versioning
+    versioning:
+      enabled: true
+      strategy: "timestamp"  # timestamp, git_hash, semantic
+      
+    # Model registry
+    registry:
+      enabled: true
+      backend: "mlflow"  # mlflow, wandb, neptune
+      experiment_name: "price_prediction_ensemble"
+      
+  # ===============================
+  # Monitoring and Logging
+  # ===============================
+  monitoring:
+    enabled: true
+    log_level: "INFO"
+    
+    # Performance monitoring
+    performance:
+      track_training_time: true
+      track_memory_usage: true
+      track_gpu_usage: true
+      
+    # Model monitoring
+    model_monitoring:
+      track_predictions: true
+      track_feature_drift: true
+      track_model_decay: true
+      
+    # Alerting
+    alerts:
+      enabled: true
+      performance_threshold: 0.1  # Alert if performance drops by 10%
+      drift_threshold: 0.05  # Alert if feature drift > 5%
+      
+  # ===============================
+  # Resource Configuration
+  # ===============================
+  resources:
+    # CPU and Memory
+    cpu_cores: 8
+    memory_gb: 16
+    
+    # GPU Configuration
+    gpu:
+      enabled: true
+      device_count: 1
+      memory_fraction: 0.8
+      
+    # Parallel Processing
+    parallel:
+      enabled: true
+      n_jobs: -1  # Use all available cores
+      backend: "loky"  # loky, threading, multiprocessing
+      
+  # ===============================
+  # Feature Engineering Pipeline
+  # ===============================
+  feature_engineering:
+    # Technical Indicators
+    technical_indicators:
+      enabled: true
+      indicators:
+        - "sma"  # Simple Moving Average
+        - "ema"  # Exponential Moving Average
+        - "rsi"  # Relative Strength Index
+        - "macd"  # MACD
+        - "bollinger_bands"
+        - "stochastic"
+        - "williams_r"
+        - "cci"  # Commodity Channel Index
+        - "atr"  # Average True Range
+        - "adx"  # Average Directional Index
+        - "obv"  # On-Balance Volume
+        - "vwap"  # Volume Weighted Average Price
+        - "momentum"
+        - "roc"  # Rate of Change
+        - "trix"
+        - "dmi"  # Directional Movement Index
+        - "ppo"  # Percentage Price Oscillator
+        - "ultimate_oscillator"
+        - "money_flow_index"
+        - "chaikin_oscillator"
+        
+    # Rolling Features
+    rolling_features:
+      enabled: true
+      windows: [5, 10, 20, 50, 100, 200]
+      functions:
+        - "mean"
+        - "std"
+        - "min"
+        - "max"
+        - "skew"
+        - "kurt"
+        - "quantile"
+        
+    # Lag Features
+    lag_features:
+      enabled: true
+      lags: [1, 2, 3, 5, 10, 20]
+      
+    # Interaction Features
+    interaction_features:
+      enabled: true
+      max_degree: 2
+      include_bias: false
+      
+  # ===============================
+  # Data Quality Checks
+  # ===============================
+  data_quality:
+    enabled: true
+    
+    # Missing data handling
+    missing_data:
+      threshold: 0.05  # Fail if > 5% missing
+      strategy: "forward_fill"  # forward_fill, backward_fill, interpolate, drop
+      
+    # Outlier detection
+    outliers:
+      enabled: true
+      method: "isolation_forest"  # isolation_forest, zscore, iqr
+      contamination: 0.01
+      
+    # Data validation
+    validation:
+      check_types: true
+      check_ranges: true
+      check_distributions: true
+      
+# ===============================
+# Environment-Specific Overrides
+# ===============================
+environments:
+  development:
+    training:
+      global:
+        gpu_enabled: false
+      models:
+        bi_lstm:
+          hyperparameters:
+            epochs: 10
+        gru:
+          hyperparameters:
+            epochs: 10
+        transformer:
+          hyperparameters:
+            epochs: 10
+            
+  testing:
+    training:
+      validation:
+        cv_folds: 2
+      hyperparameter_tuning:
+        n_trials: 5
+        
+  production:
+    training:
+      monitoring:
+        alerts:
+          enabled: true
+      persistence:
+        versioning:
+          enabled: true

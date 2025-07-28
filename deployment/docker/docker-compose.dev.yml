@@ -1,0 +1,45 @@
+# Development Override for Docker Compose
+# =====================================
+# This file extends the base docker-compose.yml for development
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      target: development
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - HOT_RELOAD=true
+    volumes:
+      - ../../src:/app/src:ro
+      - ../../notebooks:/app/notebooks
+    ports:
+      - "5678:5678"  # Debug port
+    command: >
+      python -m uvicorn src.api.main:app 
+      --host 0.0.0.0 
+      --port 8000 
+      --reload 
+      --reload-dir src
+
+  # Development tools
+  jupyter:
+    profiles: []  # Always start in development
+    environment:
+      - JUPYTER_TOKEN=development_token
+      - JUPYTER_ENABLE_LAB=yes
+    
+  adminer:
+    profiles: []  # Always start in development
+    
+  # Additional development services
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: price_predictor_mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - price_predictor_network

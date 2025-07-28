@@ -1,0 +1,572 @@
+# =============================================================================
+# Enterprise Stock Price Predictor - Unified Docker Compose
+# =============================================================================
+# Production-ready multi-service orchestration for ML training and inference
+# Supports development, staging, and production environments
+
+version: '3.8'
+
+# ================================
+# Networks Configuration
+# ================================
+networks:
+  price_predictor_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "com.price-predictor.network=main"
+
+  monitoring_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    labels:
+      - "com.price-predictor.network=monitoring"
+
+# ================================
+# Volumes Configuration
+# ================================
+volumes:
+  # Database volumes
+  postgres_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=database"
+  
+  # Cache volumes  
+  redis_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=cache"
+      
+  # Application volumes
+  app_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=application"
+      
+  model_storage:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=models"
+      
+  logs_storage:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=logs"
+      
+  # Monitoring volumes
+  prometheus_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=monitoring"
+      
+  grafana_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=monitoring"
+      
+  elasticsearch_data:
+    driver: local
+    labels:
+      - "com.price-predictor.storage=logs"
+
+# ================================
+# Services Configuration
+# ================================
+services:
+
+  # ================================
+  # Core Application Services
+  # ================================
+  
+  # Main API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+        VERSION: ${VERSION:-1.0.0}
+        VCS_REF: ${VCS_REF:-latest}
+    image: price-predictor:${VERSION:-latest}
+    container_name: price_predictor_api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-price_predictor}
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - ML_MODEL_PATH=/app/models
+      - DATA_PATH=/app/data
+    volumes:
+      - app_data:/app/data
+      - model_storage:/app/models
+      - logs_storage:/app/logs
+      - ./config:/app/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - price_predictor_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.pricepredictor.local`)"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "com.price-predictor.service=api"
+
+  # ML Training Service
+  ml-trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ml-training
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+        VERSION: ${VERSION:-1.0.0}
+    image: price-predictor-trainer:${VERSION:-latest}
+    container_name: price_predictor_trainer
+    restart: "no"  # Only run when triggered
+    environment:
+      - ENVIRONMENT=training
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-price_predictor}
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - ML_TRAINING_CONFIG=/app/config/ensemble-config.yaml
+    volumes:
+      - app_data:/app/data
+      - model_storage:/app/models
+      - logs_storage:/app/logs
+      - ./config:/app/config:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 forwarding for plots
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - price_predictor_network
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: "8"
+        reservations:
+          memory: 8G
+          cpus: "4"
+        # GPU support (uncomment if available)
+        # reservations:
+        #   devices:
+        #     - driver: nvidia
+        #       count: 1
+        #       capabilities: [gpu]
+    labels:
+      - "com.price-predictor.service=ml-trainer"
+
+  # Inference API Service
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: inference
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+        VERSION: ${VERSION:-1.0.0}
+    image: price-predictor-inference:${VERSION:-latest}
+    container_name: price_predictor_inference
+    restart: unless-stopped
+    ports:
+      - "${INFERENCE_PORT:-8001}:8000"
+    environment:
+      - ENVIRONMENT=inference
+      - REDIS_URL=redis://redis:6379/1
+      - PYTHONPATH=/app
+      - ML_MODEL_PATH=/app/models
+      - INFERENCE_CACHE_TTL=300
+    volumes:
+      - model_storage:/app/models:ro
+      - ./config:/app/config:ro
+      - logs_storage:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - price_predictor_network
+    deploy:
+      replicas: ${INFERENCE_REPLICAS:-2}
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2"
+        reservations:
+          memory: 2G
+          cpus: "1"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inference.rule=Host(`inference.pricepredictor.local`)"
+      - "traefik.http.services.inference.loadbalancer.server.port=8000"
+      - "com.price-predictor.service=inference"
+
+  # Data Pipeline Service
+  data-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: data-pipeline
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+        VERSION: ${VERSION:-1.0.0}
+    image: price-predictor-pipeline:${VERSION:-latest}
+    container_name: price_predictor_pipeline
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-price_predictor}
+      - REDIS_URL=redis://redis:6379/2
+      - PYTHONPATH=/app
+      - DATA_PIPELINE_CONFIG=/app/config/api-config.yaml
+      - PIPELINE_SCHEDULE=${PIPELINE_SCHEDULE:-0 */6 * * *}
+    volumes:
+      - app_data:/app/data
+      - logs_storage:/app/logs
+      - ./config:/app/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - price_predictor_network
+    labels:
+      - "com.price-predictor.service=data-pipeline"
+
+  # ================================
+  # Infrastructure Services
+  # ================================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: price_predictor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-price_predictor}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/sql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./scripts/sql/schemas:/docker-entrypoint-initdb.d/schemas:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - price_predictor_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-price_predictor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+    labels:
+      - "com.price-predictor.service=database"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: price_predictor_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1 300 10 60 10000
+      --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - price_predictor_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    labels:
+      - "com.price-predictor.service=cache"
+
+  # ================================
+  # Monitoring Services
+  # ================================
+  
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: price_predictor_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./config/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/monitoring/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - price_predictor_network
+      - monitoring_network
+    labels:
+      - "com.price-predictor.service=monitoring"
+
+  # Grafana for Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: price_predictor_grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_AUTH_ANONYMOUS_ENABLED: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - price_predictor_network
+      - monitoring_network
+    depends_on:
+      - prometheus
+    labels:
+      - "com.price-predictor.service=monitoring"
+
+  # ElasticSearch for Logging
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: price_predictor_elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - cluster.name=price-predictor-logs
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    networks:
+      - price_predictor_network
+      - monitoring_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.price-predictor.service=logging"
+
+  # Kibana for Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: price_predictor_kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_SYSTEM_PASSWORD=${KIBANA_PASSWORD:-kibana}
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - price_predictor_network
+      - monitoring_network
+    labels:
+      - "com.price-predictor.service=logging"
+
+  # Traefik Load Balancer
+  traefik:
+    image: traefik:v3.0
+    container_name: price_predictor_traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--metrics.prometheus=true"
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+      - "${TRAEFIK_DASHBOARD_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./config/ssl:/etc/ssl:ro
+    networks:
+      - price_predictor_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.pricepredictor.local`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "com.price-predictor.service=loadbalancer"
+
+  # ================================
+  # Development Services (Profile: dev)
+  # ================================
+  
+  # Jupyter Notebook Service
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: price-predictor-dev:${VERSION:-latest}
+    container_name: price_predictor_jupyter
+    restart: unless-stopped
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-price_predictor_token}
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+      - model_storage:/app/models
+    networks:
+      - price_predictor_network
+    profiles:
+      - dev
+      - development
+    labels:
+      - "com.price-predictor.service=development"
+
+  # Adminer Database Management
+  adminer:
+    image: adminer:4.8.1
+    container_name: price_predictor_adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: dracula
+    networks:
+      - price_predictor_network
+    profiles:
+      - dev
+      - development
+    labels:
+      - "com.price-predictor.service=development"
+
+  # ================================
+  # Testing Services (Profile: test)
+  # ================================
+  
+  # Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: price_predictor_postgres_test
+    environment:
+      POSTGRES_DB: price_predictor_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks:
+      - price_predictor_network
+    profiles:
+      - test
+    labels:
+      - "com.price-predictor.service=testing"
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    container_name: price_predictor_redis_test
+    tmpfs:
+      - /data
+    networks:
+      - price_predictor_network
+    profiles:
+      - test
+    labels:
+      - "com.price-predictor.service=testing"
+
+# ================================
+# Additional Configuration
+# ================================
+
+# Health check configuration for all services
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 30s
+
+# Resource limits template
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        memory: 2G
+        cpus: "1"
+      reservations:
+        memory: 1G
+        cpus: "0.5"
+
+# Logging configuration
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"

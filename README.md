@@ -49,7 +49,7 @@ This project delivers a complete ecosystem for intelligent stock price predictio
 ### Enterprise Directory Structure
 ```
 | Major_Project/
-├── app/                          # Application Layer
+├── app/                             # Application Layer
 │   ├── core/                        # Core application modules
 │   ├── logs/                        # Application logs
 │   └── sessions/                    # Session management
@@ -2774,6 +2774,57 @@ report = generator.generate_comprehensive_model_report(
 - **Memory**: 8GB RAM minimum, 16GB+ recommended
 - **Storage**: 10GB free space for data and models
 - **APIs**: Active accounts with supported data providers
+
+### Enterprise Ensemble Training (All Models) 🎯
+
+The system now includes a comprehensive ensemble training pipeline with ALL major ML/DL models:
+
+#### All Implemented Models
+```
+✅ Traditional ML: Random Forest, Gradient Boosting, Ridge, Lasso, Elastic Net
+✅ Gradient Boosting: XGBoost, LightGBM  
+✅ Support Vector: SVR (RBF, Linear, Polynomial)
+✅ Deep Learning: Bi-LSTM, GRU, Transformer
+✅ Time Series: ARIMA, Prophet, Seasonal Decomposition
+✅ Ensemble Methods: Weighted Average, Voting, Stacking
+```
+
+#### Quick Demo (All Models)
+```bash
+# Clone and setup
+git clone <repository-url>
+cd Major_Project
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Quick demo with ALL models
+python run_enterprise_ensemble.py --demo
+
+# Production training with custom data
+python run_enterprise_ensemble.py --data your_data.csv --config config/ensemble-config.yaml
+
+# Enterprise Docker deployment (full stack)
+docker-compose up -d
+
+# Kubernetes production deployment  
+kubectl apply -f k8s/
+```
+
+#### Advanced Usage
+```bash
+# Train specific models only
+python run_enterprise_ensemble.py --models "random_forest,xgboost,lstm"
+
+# Interactive notebook training (enhanced)
+jupyter notebook notebooks/exploration/stock_ML_Model.ipynb
+
+# Enhanced notebook with enterprise features
+python notebooks/exploration/enhanced_stock_ML_Model.py
+
+# Enterprise demo with all infrastructure
+python scripts/enterprise_ensemble_demo.py
+```
 
 ### Installation & Setup
 

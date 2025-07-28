@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: price-predictor
+  labels:
+    app.kubernetes.io/name: price-predictor
+    app.kubernetes.io/component: namespace
+    environment: production
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: price-predictor-config
+  namespace: price-predictor
+data:
+  # Application Configuration
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  PYTHONPATH: "/app"
+  
+  # Database Configuration
+  POSTGRES_DB: "price_predictor"
+  POSTGRES_USER: "postgres"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  
+  # ML Configuration
+  ML_MODEL_PATH: "/app/models"
+  DATA_PATH: "/app/data"
+  ML_TRAINING_CONFIG: "/app/config/ensemble-config.yaml"
+  
+  # API Configuration
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
