@@ -204,6 +204,7 @@ model = trainer.train_cost_aware_model(
     "training_time": "2.34 seconds"
   }
 }
+```
 
 ### 📊 Comprehensive Multi-Asset Data Integration
 
@@ -791,7 +792,6 @@ class AdvancedPortfolioOptimizer:
         
         return optimization_results
 ```
-```
 
 ### 🎯 Options Trading Strategies & Analysis
 
@@ -840,6 +840,7 @@ class OptionsStrategiesEngine:
             'market_regime_recommendations': self.get_regime_recommendations(strategy_analysis),
             'risk_metrics': self.calculate_portfolio_risk_metrics(strategy_analysis)
         }
+```
 
 #### Options-Related Flags & Signals
 ```python
@@ -947,6 +948,7 @@ def detect_unusual_volume(options_df):
     }
     
     return volume_analysis
+```
 
 #### Relative Behavior Analysis Across Strikes
 ```python
@@ -1008,6 +1010,7 @@ def analyze_strike_relatives(options_data, option_type):
         'volume_outliers': volume_outliers,
         'oi_distribution': oi_relatives.describe().to_dict()
     }
+```
 
 #### Crossover Events & Divergence Detection
 ```python
@@ -1065,6 +1068,7 @@ def auto_detect_divergences(df):
         'severity_analysis': analyze_divergence_severity(divergences),
         'trading_implications': generate_trading_implications(divergences)
     }
+```
 
 #### NSE Indices Data Integration
 ```python
@@ -1131,6 +1135,7 @@ def fetch_comprehensive_nse_indices():
             print(f"Error fetching {symbol}: {e}")
     
     return indices_data
+```
 
 #### Advanced Data Standardization & Scaling
 ```python
@@ -1214,6 +1219,7 @@ def standardize_multi_asset_data(df):
         }
     
     return scaled_data, scaler_info
+```
 
 #### Rolling Features Computation
 ```python
@@ -1326,6 +1332,7 @@ class DataQualityAnalyzer:
             'critical_gaps': critical_gaps,
             'overall_completeness': sum(data['completion_rate'] for data in completeness.values()) / len(completeness)
         }
+```
 
 #### Advanced Anomaly Detection
 ```python
@@ -1459,6 +1466,7 @@ class FinancialNeuralNetworks:
         
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
         return model
+```
 
 #### Ensemble Learning with Advanced Stacking
 ```python
@@ -1497,6 +1505,7 @@ class AdvancedEnsembleSystem:
             'final_meta_learner': final_ensemble,
             'validation_score': self.evaluate_ensemble(X_val, y_val)
         }
+```
 
 #### Feature Engineering Automation
 ```python
@@ -1554,6 +1563,7 @@ class AutomatedFeatureEngineering:
         best_features = X.columns[best_solution.astype(bool)]
         
         return best_features, model.output_dict['function']
+```
 
 #### Real-Time Model Adaptation
 ```python
@@ -1605,6 +1615,7 @@ class AdaptiveModelSystem:
         recent_targets = new_targets.tail(window_size)
         
         self.retrain_models(recent_data, recent_targets)
+```
 
 #### Reinforcement Learning for Trading
 ```python
@@ -1669,6 +1680,7 @@ class ReinforcementLearningTrader:
             weights[agent_name] /= total_score if total_score > 0 else 1
         
         self.ensemble_weights = weights
+```
 
 #### Model Interpretability & Explainability
 ```python
@@ -1727,6 +1739,7 @@ class ModelExplainabilityFramework:
         }
         
         return summary
+```
 
 #### Advanced Model Validation & Testing
 ```python
@@ -1915,6 +1928,7 @@ class EnterpriseConfigManager:
                 return obj
         
         return substitute_recursive(config)
+```
 
 #### Performance Optimization Framework
 ```python
@@ -1980,6 +1994,7 @@ class PerformanceOptimizer:
         }
         
         return optimization_results
+```
 
 #### Advanced Monitoring & Observability
 ```python
@@ -2053,6 +2068,7 @@ class ComprehensiveMonitoringSystem:
             'drift_detected': drift_detected,
             'monitoring_status': 'healthy' if not (degradation_detected or drift_detected) else 'degraded'
         }
+```
 
 #### Security & Compliance Framework
 ```python
@@ -2116,6 +2132,7 @@ class SecurityComplianceFramework:
         }
         
         return encryption_config
+```
 
 #### Advanced Error Handling & Recovery
 ```python
@@ -2249,6 +2266,7 @@ class ExecutiveDashboard:
         }
         
         return summary
+```
 
 ### 🎯 Advanced Analytics & Insights Engine
 ```python
@@ -2306,6 +2324,7 @@ class AdvancedAnalyticsEngine:
         }
         
         return microstructure_analysis
+```
 
 ### 📊 Real-Time Risk Management System
 ```python
@@ -2384,6 +2403,7 @@ class RealTimeRiskManagement:
             var_results[f'{level_key}_std'] = np.std(var_values)
         
         return var_results
+```
 
 ### 🚀 Automated Trading Strategy Engine
 ```python
@@ -2470,6 +2490,7 @@ class AutomatedTradingStrategyEngine:
             'market_regime': current_regime,
             'expected_performance': self.estimate_portfolio_performance(risk_adjusted_positions)
         }
+```
 
 ### 🎭 Advanced Market Simulation & Backtesting
 ```python
@@ -2578,6 +2599,7 @@ class AdvancedMarketSimulator:
             'confidence_intervals': self.calculate_confidence_intervals(simulation_results),
             'risk_metrics': self.calculate_monte_carlo_risk_metrics(simulation_results)
         }
+```
 
 ### 🔄 Continuous Learning & Adaptation System
 ```python
@@ -2988,6 +3010,7 @@ class FinancialMLTestFramework:
             })
             
             return temporal_stats
+```
 
 #### Risk Management Testing
 ```python
@@ -3048,6 +3071,7 @@ class RiskManagementTestSuite:
                 
                 assert portfolio.position_reduction_active, \
                     "Position reduction not activated"
+```
 
 #### Data Quality Testing
 ```python
@@ -3134,6 +3158,7 @@ class DataQualityTestFramework:
                     f"{stability_metrics[column]['overall_stability']:.3f}"
             
             return stability_metrics
+```
 
 ### Performance Testing & Benchmarking
 
@@ -3224,6 +3249,7 @@ class PerformanceTestSuite:
                 'average_latency': np.mean(latencies),
                 'concurrent_users': concurrent_users
             }
+```
 
 ### Automated Testing Pipeline
 
@@ -3432,6 +3458,7 @@ class TestDataManager:
         )
         
         return anonymized_data
+```
 
 ### Compliance & Regulatory Testing
 
@@ -3544,20 +3571,20 @@ make benchmark
 ### Model Performance Metrics
 
 #### Primary Performance (Production Data)
-| Model | R² Score | RMSE | MAE | Training Time | Inference Time |
-|-------|----------|------|-----|---------------|----------------|
-| Ensemble | **0.9859** | 1.999 | 1.583 | 45.2s | 12ms |
-| Bi-LSTM | 0.9831 | 2.185 | 1.736 | 8.4s | 8ms |
-| LightGBM | 0.9824 | 2.201 | 1.752 | 12.1s | 10ms |
-| XGBoost | 0.9812 | 2.267 | 1.834 | 15.8s | 15ms |
-| Random Forest | 0.9798 | 2.334 | 1.891 | 180.4s | 25ms |
+| Model         | R² Score   |  RMSE | MAE   | Training Time | Inference Time |
+|---------------|------------|-------|-------|---------------|----------------|
+| Ensemble      | **0.9859** | 1.999 | 1.583 |     45.2s     |      12ms      |
+| Bi-LSTM       |   0.9831   | 2.185 | 1.736 |     8.4s      |       8ms      |
+| LightGBM      |   0.9824   | 2.201 | 1.752 |     12.1s     |      10ms      |
+| XGBoost       |   0.9812   | 2.267 | 1.834 |     15.8s     |      15ms      |
+| Random Forest |   0.9798   | 2.334 | 1.891 |     180.4s    |      25ms      |
 
 #### Transaction Cost Accuracy
-| Broker | Cost Estimation Accuracy | Processing Time | Feature Coverage |
-|--------|-------------------------|-----------------|------------------|
-| Zerodha | 99.7% | <50ms | Complete |
-| ICICI Direct | 99.5% | <60ms | Complete |
-| Angel Broking | 99.3% | <55ms | Complete |
+|     Broker    | Cost Estimation Accuracy | Processing Time | Feature Coverage |
+|---------------|--------------------------|-----------------|------------------|
+| Zerodha       |           99.7%          | <50ms           | Complete         |
+| ICICI Direct  |           99.5%          | <60ms           | Complete         |
+| Angel Broking |           99.3%          | <55ms           | Complete         |
 
 ### System Performance
 
@@ -3574,11 +3601,11 @@ make benchmark
 - **CPU Utilization**: <60% average load
 
 #### Hardware Requirements
-| Environment | CPU | RAM | Storage | Network |
-|-------------|-----|-----|---------|---------|
-| Development | 2 cores | 4GB | 20GB | 10Mbps |
-| Production | 8 cores | 16GB | 100GB SSD | 100Mbps |
-| High-Load | 16 cores | 32GB | 500GB SSD | 1Gbps |
+| Environment |   CPU   | RAM |  Storage  | Network |
+|-------------|---------|-----|-----------|---------|
+| Development | 2 cores | 4GB | 20GB      | 10Mbps  |
+| Production  | 8 cores | 16GB| 100GB SSD | 100Mbps |
+| High-Load   | 16 cores| 32GB| 500GB SSD | 1Gbps   |
 
 ---
 
@@ -3902,6 +3929,7 @@ class TutorialExamples:
             'predictions': predictions,
             'performance': performance_metrics
         }
+```
 
 ### Knowledge Base & Best Practices
 
@@ -4007,6 +4035,7 @@ class PerformanceOptimizationGuide:
             converter.optimizations = [tf.lite.Optimize.DEFAULT]
             quantized_model = converter.convert()
             return quantized_model
+```
 
 ### Quality Assurance Framework
 
@@ -4059,6 +4088,7 @@ class CodeQualityStandards:
         except Exception as e:
             logger.error(f"Failed to calculate returns: {e}")
             raise RuntimeError(f"Return calculation failed: {e}") from e
+```
 
 #### Testing Standards
 ```python
@@ -4116,6 +4146,7 @@ class TestingStandards:
             # Check for outliers
             outlier_rate = detect_outliers(data).sum() / len(data)
             assert outlier_rate < 0.01, "Too many outliers detected"
+```
 
 ### Training & Certification Programs
 
@@ -4436,6 +4467,7 @@ class QuantumPortfolioOptimizer:
             return self.classical_fallback.optimize(
                 expected_returns, covariance_matrix, risk_tolerance
             )
+```
 
 #### Neuromorphic Computing Initiative
 ```python
@@ -4463,6 +4495,7 @@ class NeuromorphicMarketProcessor:
             # Trigger actions based on spike patterns
             if self.detect_significant_pattern(snn_output):
                 self.trigger_trading_action(asset, predictions)
+```
 
 #### Advanced Natural Language Processing
 ```python
@@ -4499,6 +4532,7 @@ class AdvancedMarketNLP:
         analysis_results['impact_prediction'] = self.predict_market_impact(analysis_results)
         
         return analysis_results
+```
 
 ### Extension Framework & Plugin Architecture
 ```python
@@ -4554,6 +4588,7 @@ class PluginArchitecture:
             return {'status': 'registered', 'plugin_id': validation_result['plugin_id']}
         else:
             return {'status': 'failed', 'errors': validation_result['errors']}
+```
 
 ### Technology Stack Evolution
 
